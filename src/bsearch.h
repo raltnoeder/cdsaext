@@ -1,10 +1,3 @@
-/* 
- * File:   bsearch.h
- * Author: bobby
- *
- * Created on September 30, 2013, 9:15 PM
- */
-
 #ifndef BSEARCH_H
 #define	BSEARCH_H
 
