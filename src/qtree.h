@@ -9,8 +9,9 @@
 extern "C" {
 #endif
     
-#define QTREE_ERR_NOMEM 1
-#define QTREE_PASS      0
+#define QTREE_ERR_EXISTS 2
+#define QTREE_ERR_NOMEM  1
+#define QTREE_PASS       0
     
 #define QTREE_STATE_ENTER_L 0
 #define QTREE_STATE_ENTER_H 1
@@ -41,6 +42,7 @@ extern "C" {
     qtree       *qtree_alloc(int (*)(void *, void *));
     void        qtree_dealloc(qtree *);
     int         qtree_insert(qtree *, void *, void *);
+    int         qtree_insertnode(qtree *, qtree_node *);
     void        qtree_remove(qtree *, void *);
     void        qtree_removenode(qtree *, qtree_node *);
     void        *qtree_get(qtree *, void *);
@@ -48,11 +50,6 @@ extern "C" {
     qtree_it    *qtree_iterator(qtree *);
     qtree_node  *qtree_next(qtree_it *);
     size_t      qtree_get_size(qtree *);
-
-    inline qtree_node  *_qtree_findnode(qtree *, void *);
-    inline void        _qtree_removenode(qtree *, qtree_node *);
-    inline void        _qtree_insblnc(qtree *, qtree_node *, qtree_node *);
-    inline void        _qtree_rmblnc(qtree *, int, qtree_node *, qtree_node *);
 
 #ifdef	__cplusplus
 }
