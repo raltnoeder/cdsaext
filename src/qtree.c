@@ -1,7 +1,7 @@
 /**
  * Quick balanced binary search tree
  *
- * @version 2014-01-04_001
+ * @version 2014-02-20_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
