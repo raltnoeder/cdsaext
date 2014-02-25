@@ -48,6 +48,7 @@ extern "C" {
     void        *qtree_get(qtree *, void *);
     qtree_node  *qtree_getnode(qtree *, void *);
     qtree_it    *qtree_iterator(qtree *);
+    void        qtree_iteratorinit(qtree *, qtree_it *);
     qtree_node  *qtree_next(qtree_it *);
     size_t      qtree_get_size(qtree *);
 

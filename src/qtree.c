@@ -1,7 +1,7 @@
 /**
  * Quick balanced binary search tree
  *
- * @version 2014-02-20_001
+ * @version 2014-02-25_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -31,17 +31,18 @@
  */
 #include "qtree.h"
 
-static inline qtree_node  *_qtree_findnode(qtree *, void *);
-static inline int         _qtree_insertnode(qtree *, qtree_node *);
-static inline void        _qtree_removenode(qtree *, qtree_node *);
-static inline void        _qtree_insblnc(qtree *, qtree_node *, qtree_node *);
-static inline void        _qtree_rmblnc(qtree *, int, qtree_node *, qtree_node *);
+static inline qtree_node *_qtree_findnode(qtree *, void *);
+static inline int        _qtree_insertnode(qtree *, qtree_node *);
+static inline void       _qtree_removenode(qtree *, qtree_node *);
+static inline void       _qtree_insblnc(qtree *, qtree_node *, qtree_node *);
+static inline void       _qtree_rmblnc(qtree *, int, qtree_node *, qtree_node *);
+static inline void       _qtree_iteratorinit(qtree *, qtree_it *);
 
 qtree *qtree_alloc(int (*qtree_cmp_func)(void *, void *))
 {
     qtree *qtree_obj;
     
-    qtree_obj = (qtree *) malloc((size_t) sizeof(qtree));
+    qtree_obj = malloc(sizeof(qtree));
     if (qtree_obj != NULL)
     {
         qtree_obj->root = NULL;
@@ -94,7 +95,7 @@ int qtree_insert(qtree *qtree_obj, void *key, void *val)
     qtree_node *nx;
     int        rc;
     
-    nx = (qtree_node *) malloc((size_t) sizeof(qtree_node));
+    nx = malloc(sizeof(qtree_node));
     if (nx != NULL)
     {
         nx->blnc = 0;
@@ -161,21 +162,18 @@ qtree_it *qtree_iterator(qtree *qtree_obj)
 {
     qtree_it *it;
     
-    it = (qtree_it *) malloc((size_t) sizeof(qtree_it));
+    it = malloc(sizeof(qtree_it));
     if (it != NULL)
     {
-        if (qtree_obj->root != NULL)
-        {
-            for (it->c = qtree_obj->root; it->c->l != NULL; it->c = it->c->l) { }
-        } else {
-            it->c = NULL;
-        }
-        it->p = NULL;
-        it->r = NULL;
-        it->state = QTREE_STATE_ENTER_H;
+        _qtree_iteratorinit(qtree_obj, it);
     }
     
     return it;
+}
+
+void qtree_iteratorinit(qtree *qtree_obj, qtree_it *it)
+{
+    _qtree_iteratorinit(qtree_obj, it);
 }
 
 qtree_node *qtree_next(qtree_it *qTreeItObj)
@@ -796,4 +794,17 @@ static inline qtree_node *_qtree_findnode(qtree *qtree_obj, void *key)
     }
 
     return NULL;
+}
+
+static inline void _qtree_iteratorinit(qtree *qtree_obj, qtree_it *it)
+{
+    if (qtree_obj->root != NULL)
+    {
+        for (it->c = qtree_obj->root; it->c->l != NULL; it->c = it->c->l) { }
+    } else {
+        it->c = NULL;
+    }
+    it->p = NULL;
+    it->r = NULL;
+    it->state = QTREE_STATE_ENTER_H;
 }
