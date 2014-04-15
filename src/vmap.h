@@ -16,7 +16,7 @@ extern "C" {
         struct vmap_node_struct  *head;
         struct vmap_node_struct  *tail;
         size_t                   size;
-        int                      (*vmapCompare)(void *, void *);
+        int                      (*vmap_cmp)(void *, void *);
     } vmap;
 
     typedef struct vmap_node_struct {
@@ -32,6 +32,7 @@ extern "C" {
     } vmap_it;
 
     vmap       *vmap_alloc(int (*)(void *, void *));
+    void       vmap_init(vmap *, int (*)(void *, void *));
     void       vmap_dealloc(vmap *);
     int        vmap_insertbeforenode(vmap *, vmap_node *, void *, void *);
     void       vmap_insertnodebeforenode(vmap *, vmap_node *, vmap_node *);

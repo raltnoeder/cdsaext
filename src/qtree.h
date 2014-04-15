@@ -8,21 +8,21 @@
 #ifdef	__cplusplus
 extern "C" {
 #endif
-    
+
 #define QTREE_ERR_EXISTS 2
 #define QTREE_ERR_NOMEM  1
 #define QTREE_PASS       0
-    
+
 #define QTREE_STATE_ENTER_L 0
 #define QTREE_STATE_ENTER_H 1
 #define QTREE_STATE_LEAVE   2
-    
+
     typedef struct qtree_struct {
         struct   qtreenode_struct  *root;
         size_t                     size;
         int                        (*qtree_cmp)(void*, void*);
     } qtree;
-    
+
     typedef struct qtreenode_struct {
         void                     *key;
         void                     *val;
@@ -31,7 +31,7 @@ extern "C" {
         struct qtreenode_struct  *p;
         int                      blnc;
     } qtree_node;
-    
+
     typedef struct qTreeIt_struct {
         struct qtreenode_struct  *c;
         struct qtreenode_struct  *p;
@@ -39,12 +39,14 @@ extern "C" {
         int                      state;
     } qtree_it;
 
-    qtree       *qtree_alloc(int (*)(void *, void *));
     void        qtree_dealloc(qtree *);
+    qtree       *qtree_alloc(int (*)(void *, void *));
+    void        qtree_init(qtree *, int (*)(void *, void *));
     int         qtree_insert(qtree *, void *, void *);
     int         qtree_insertnode(qtree *, qtree_node *);
     void        qtree_remove(qtree *, void *);
     void        qtree_removenode(qtree *, qtree_node *);
+    qtree_node  *qtree_unlinknode(qtree *, qtree_node *);
     void        *qtree_get(qtree *, void *);
     qtree_node  *qtree_getnode(qtree *, void *);
     qtree_it    *qtree_iterator(qtree *);
