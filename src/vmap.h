@@ -34,6 +34,7 @@ extern "C" {
     vmap       *vmap_alloc(int (*)(void *, void *));
     void       vmap_init(vmap *, int (*)(void *, void *));
     void       vmap_dealloc(vmap *);
+    void       vmap_clear(vmap *);
     int        vmap_insertbeforenode(vmap *, vmap_node *, void *, void *);
     void       vmap_insertnodebeforenode(vmap *, vmap_node *, vmap_node *);
     void       vmap_prependnode(vmap *, vmap_node *);

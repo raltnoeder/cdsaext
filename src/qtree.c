@@ -1,7 +1,7 @@
 /**
  * Quick balanced binary search tree
  *
- * @version 2014-04-15_001
+ * @version 2014-04-16_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -39,6 +39,7 @@ static inline void       _qtree_insblnc(qtree *, qtree_node *, qtree_node *);
 static inline void       _qtree_rmblnc(qtree *, int, qtree_node *);
 static inline void       _qtree_init(qtree *, int (*)(void *, void *));
 static inline void       _qtree_iteratorinit(qtree *, qtree_it *);
+static inline void       _qtree_clear(qtree *);
 
 qtree *qtree_alloc(int (*qtree_cmp_func)(void *, void *))
 {
@@ -55,39 +56,15 @@ qtree *qtree_alloc(int (*qtree_cmp_func)(void *, void *))
 
 void qtree_dealloc(qtree *qtree_obj)
 {
-    if (qtree_obj != NULL)
-    {
-        qtree_node *node;
-        qtree_node *leaf;
+    _qtree_clear(qtree_obj);
+    free(qtree_obj);
+}
 
-        node = qtree_obj->root;
-
-        while (node != NULL)
-        {
-            if (node->l != NULL)
-            {
-                node = node->l;
-            } else
-            if (node->r != NULL)
-            {
-                node = node->r;
-            } else {
-                leaf = node;
-                node = node->p;
-                if (node != NULL)
-                {
-                    if (leaf == node->l)
-                    {
-                        node->l = NULL;
-                    } else {
-                        node->r = NULL;
-                    }
-                }
-                free((void*) leaf);
-            }
-        }
-        free((void*) qtree_obj);
-    }
+void qtree_clear(qtree *qtree_obj)
+{
+    _qtree_clear(qtree_obj);
+    qtree_obj->size = 0;
+    qtree_obj->root = NULL;
 }
 
 void qtree_init(qtree *qtree_obj, int (*qtree_cmp_func)(void *, void *))
@@ -830,4 +807,40 @@ static inline void _qtree_iteratorinit(qtree *qtree_obj, qtree_it *it)
     it->p = NULL;
     it->r = NULL;
     it->state = QTREE_STATE_ENTER_H;
+}
+
+static inline void _qtree_clear(qtree *qtree_obj)
+{
+    if (qtree_obj != NULL)
+    {
+        qtree_node *node;
+        qtree_node *leaf;
+
+        node = qtree_obj->root;
+
+        while (node != NULL)
+        {
+            if (node->l != NULL)
+            {
+                node = node->l;
+            } else
+            if (node->r != NULL)
+            {
+                node = node->r;
+            } else {
+                leaf = node;
+                node = node->p;
+                if (node != NULL)
+                {
+                    if (leaf == node->l)
+                    {
+                        node->l = NULL;
+                    } else {
+                        node->r = NULL;
+                    }
+                }
+                free(leaf);
+            }
+        }
+    }
 }

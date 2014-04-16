@@ -40,6 +40,7 @@ extern "C" {
     } qtree_it;
 
     void        qtree_dealloc(qtree *);
+    void        qtree_clear(qtree *);
     qtree       *qtree_alloc(int (*)(void *, void *));
     void        qtree_init(qtree *, int (*)(void *, void *));
     int         qtree_insert(qtree *, void *, void *);

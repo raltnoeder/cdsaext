@@ -1,7 +1,7 @@
 /**
  * Vector map
  *
- * @version 2014-04-15_001
+ * @version 2014-04-16_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -37,6 +37,7 @@ static inline void      _vmap_prependnode(vmap *, vmap_node *);
 static inline void      _vmap_appendnode(vmap *, vmap_node *);
 static inline void      _vmap_insertnodebeforenode(vmap *, vmap_node *, vmap_node *);
 static inline void      _vmap_init(vmap *, int (*)(void *, void *));
+static inline void      _vmap_clear(vmap *);
 
 vmap *vmap_alloc(int (*vmap_cmp_func)(void *, void *))
 {
@@ -53,15 +54,16 @@ vmap *vmap_alloc(int (*vmap_cmp_func)(void *, void *))
 
 void vmap_dealloc(vmap *vmap_obj)
 {
-    vmap_node *node;
-    vmap_node *next;
+    _vmap_clear(vmap_obj);
+    free(vmap_obj);
+}
 
-    for (node = vmap_obj->head; node != NULL; node = next)
-    {
-        next = node->next;
-        free((void *) node);
-    }
-    free((void *) vmap_obj);
+void vmap_clear(vmap *vmap_obj)
+{
+    _vmap_clear(vmap_obj);
+    vmap_obj->size = 0;
+    vmap_obj->head = NULL;
+    vmap_obj->tail = NULL;
 }
 
 void vmap_init(vmap *vmap_obj, int (*vmap_cmp_func)(void *, void *))
@@ -239,7 +241,7 @@ static inline void _vmap_removenode(vmap *vmap_obj, vmap_node *node)
         node->prev->next = node->next;
     }
 
-    free((void *) node);
+    free(node);
     --(vmap_obj->size);
 }
 
@@ -307,3 +309,14 @@ static inline void _vmap_init(vmap *vmap_obj, int (*vmap_cmp_func)(void *, void 
     vmap_obj->vmap_cmp = vmap_cmp_func;
 }
 
+static inline void _vmap_clear(vmap *vmap_obj)
+{
+    vmap_node *node;
+    vmap_node *next;
+
+    for (node = vmap_obj->head; node != NULL; node = next)
+    {
+        next = node->next;
+        free(node);
+    }
+}
