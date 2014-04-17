@@ -80,7 +80,6 @@ int qtree_insert(qtree *qtree_obj, void *key, void *val)
     nx = malloc(sizeof(qtree_node));
     if (nx != NULL)
     {
-        nx->blnc = 0;
         nx->key  = key;
         nx->val  = val;
 
@@ -614,9 +613,10 @@ static inline int _qtree_insertnode(qtree *qtree_obj, qtree_node *nx)
     {
         qtree_obj->root = nx;
         ++(qtree_obj->size);
-        nx->l = NULL;
-        nx->r = NULL;
-        nx->p = NULL;
+        nx->l    = NULL;
+        nx->r    = NULL;
+        nx->p    = NULL;
+        nx->blnc = 0;
     } else {
         ny = qtree_obj->root;
         for (;;)
@@ -626,8 +626,11 @@ static inline int _qtree_insertnode(qtree *qtree_obj, qtree_node *nx)
             {
                 if (ny->l == NULL)
                 {
-                    ny->l = nx;
-                    nx->p = ny;
+                    ny->l    = nx;
+                    nx->p    = ny;
+                    nx->l    = NULL;
+                    nx->r    = NULL;
+                    nx->blnc = 0;
                     ++(qtree_obj->size);
                     break;
                 } else {
@@ -638,8 +641,11 @@ static inline int _qtree_insertnode(qtree *qtree_obj, qtree_node *nx)
             {
                 if (ny->r == NULL)
                 {
-                    ny->r = nx;
-                    nx->p = ny;
+                    ny->r    = nx;
+                    nx->p    = ny;
+                    nx->l    = NULL;
+                    nx->r    = NULL;
+                    nx->blnc = 0;
                     ++(qtree_obj->size);
                     break;
                 } else {
