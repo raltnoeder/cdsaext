@@ -43,6 +43,7 @@ extern "C" {
     int        vmap_append(vmap *, void *, void *);
     void       vmap_remove(vmap *, void *);
     void       vmap_removenode(vmap *, vmap_node *);
+    void       vmap_unlinknode(vmap *, vmap_node *);
     void       *vmap_get(vmap *, void *);
     vmap_node  *vmap_getnode(vmap *, void *);
     vmap_it    *vmap_iterator(vmap *);

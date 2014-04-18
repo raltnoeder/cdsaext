@@ -1,7 +1,7 @@
 /**
  * Vector map
  *
- * @version 2014-04-16_001
+ * @version 2014-04-18_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -33,6 +33,7 @@
 
 static inline vmap_node *_vmap_findnode(vmap *, void *);
 static inline void      _vmap_removenode(vmap *, vmap_node *);
+static inline void      _vmap_unlinknode(vmap *, vmap_node *);
 static inline void      _vmap_prependnode(vmap *, vmap_node *);
 static inline void      _vmap_appendnode(vmap *, vmap_node *);
 static inline void      _vmap_insertnodebeforenode(vmap *, vmap_node *, vmap_node *);
@@ -154,6 +155,11 @@ void vmap_removenode(vmap *vmap_obj, vmap_node *node)
     _vmap_removenode(vmap_obj, node);
 }
 
+void vmap_unlinknode(vmap *vmap_obj, vmap_node *node)
+{
+    _vmap_unlinknode(vmap_obj, node);
+}
+
 void *vmap_get(vmap *vmap_obj, void *key)
 {
     vmap_node *node;
@@ -220,6 +226,12 @@ inline vmap_node *_vmap_findnode(vmap *vmap_obj, void *key)
 
 static inline void _vmap_removenode(vmap *vmap_obj, vmap_node *node)
 {
+    _vmap_unlinknode(vmap_obj, node);
+    free(node);
+}
+
+static inline void _vmap_unlinknode(vmap *vmap_obj, vmap_node *node)
+{
     if (vmap_obj->head == node)
     {
         vmap_obj->head = node->next;
@@ -232,16 +244,6 @@ static inline void _vmap_removenode(vmap *vmap_obj, vmap_node *node)
     } else {
         node->next->prev = node->prev;
     }
-    if (node->next != NULL)
-    {
-        node->next->prev = node->prev;
-    }
-    if (node->prev != NULL)
-    {
-        node->prev->next = node->next;
-    }
-
-    free(node);
     --(vmap_obj->size);
 }
 
