@@ -32,11 +32,8 @@ extern "C" {
         int                      blnc;
     } qtree_node;
 
-    typedef struct qTreeIt_struct {
-        struct qtreenode_struct  *c;
-        struct qtreenode_struct  *p;
-        struct qtreenode_struct  *r;
-        int                      state;
+    typedef struct qtree_it_struct {
+        struct qtreenode_struct  *next;
     } qtree_it;
 
     void        qtree_dealloc(qtree *);

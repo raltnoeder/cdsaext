@@ -1,7 +1,7 @@
 /**
  * Quick balanced binary search tree
  *
- * @version 2014-04-16_001
+ * @version 2014-05-21_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -121,7 +121,7 @@ qtree_node *qtree_unlinknode(qtree *qtree_obj, qtree_node *crt)
     return _qtree_unlinknode(qtree_obj, crt);
 }
 
-void* qtree_get(qtree *qtree_obj, void *key)
+void *qtree_get(qtree *qtree_obj, void *key)
 {
     qtree_node *nx;
 
@@ -162,61 +162,37 @@ void qtree_iteratorinit(qtree *qtree_obj, qtree_it *it)
     _qtree_iteratorinit(qtree_obj, it);
 }
 
-qtree_node *qtree_next(qtree_it *qTreeItObj)
+qtree_node *qtree_next(qtree_it *it)
 {
-    if (qTreeItObj->c != NULL)
+    qtree_node *ret;
+    qtree_node *n;
+
+    ret  = it->next;
+
+    if (ret != NULL)
     {
-        /* save current */
-        qTreeItObj->r = qTreeItObj->c;
-
-        /* update current */
-        for (; qTreeItObj->c != NULL;)
+        n = ret;
+        if (n->r != NULL)
         {
-            if (qTreeItObj->state == QTREE_STATE_ENTER_L)
+            for (n = n->r; n->l != NULL; n = n->l);
+        } else {
+            do
             {
-                /* traversing down */
-                /* find lowest-value node */
-                for (; qTreeItObj->c->l != NULL; qTreeItObj->c = qTreeItObj->c->l) { }
-                qTreeItObj->state = QTREE_STATE_ENTER_H;
-                /* select current */
-                break;
-            } else
-            if (qTreeItObj->state == QTREE_STATE_ENTER_H)
-            {
-                /* traversing down */
-                if (qTreeItObj->c->r != NULL)
+                if (n->p != NULL)
                 {
-                    qTreeItObj->c = qTreeItObj->c->r;
-                    qTreeItObj->state = QTREE_STATE_ENTER_L;
-                } else {
-                    /* leaf node */
-                    qTreeItObj->state = QTREE_STATE_LEAVE;
+                    if (n->p->l == n)
+                    {
+                        n = n->p;
+                        break;
+                    }
                 }
-            } else {
-                /* traversing up (STATE_LEAVE) */
-                qTreeItObj->p = qTreeItObj->c;
-                qTreeItObj->c = qTreeItObj->c->p;
-                if (qTreeItObj->c == NULL)
-                {
-                    break;
-                }
-                if (qTreeItObj->c->l == qTreeItObj->p)
-                {
-                    /* traversing up from lower-value node */
-                    qTreeItObj->state = QTREE_STATE_ENTER_H;
-                    /* select current */
-                    break;
-                } else {
-                    /* traversing up from higher-value node */
-                    continue;
-                }
-            }
+                n = n->p;
+            } while (n != NULL);
         }
-
-        return qTreeItObj->r;
+        it->next = n;
     }
 
-    return NULL;
+    return ret;
 }
 
 static inline void _qtree_rmblnc(qtree *qtree_obj, int dir, qtree_node *r)
@@ -806,13 +782,10 @@ static inline void _qtree_iteratorinit(qtree *qtree_obj, qtree_it *it)
 {
     if (qtree_obj->root != NULL)
     {
-        for (it->c = qtree_obj->root; it->c->l != NULL; it->c = it->c->l) { }
+        for (it->next = qtree_obj->root; it->next->l != NULL; it->next = it->next->l) { }
     } else {
-        it->c = NULL;
+        it->next = NULL;
     }
-    it->p = NULL;
-    it->r = NULL;
-    it->state = QTREE_STATE_ENTER_H;
 }
 
 static inline void _qtree_clear(qtree *qtree_obj)
