@@ -17,22 +17,25 @@ extern "C" {
 #define QTREE_STATE_ENTER_H 1
 #define QTREE_STATE_LEAVE   2
 
-    typedef struct qtree_struct {
+    typedef struct qtree_struct
+    {
         struct   qtreenode_struct  *root;
         size_t                     size;
         int                        (*qtree_cmp)(void*, void*);
     } qtree;
 
-    typedef struct qtreenode_struct {
+    typedef struct qtreenode_struct
+    {
         void                     *key;
         void                     *val;
-        struct qtreenode_struct  *l;
-        struct qtreenode_struct  *r;
-        struct qtreenode_struct  *p;
-        int                      blnc;
+        struct qtreenode_struct  *less;
+        struct qtreenode_struct  *greater;
+        struct qtreenode_struct  *parent;
+        int                      balance;
     } qtree_node;
 
-    typedef struct qtree_it_struct {
+    typedef struct qtree_it_struct
+    {
         struct qtreenode_struct  *next;
     } qtree_it;
 

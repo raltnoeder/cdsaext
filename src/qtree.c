@@ -1,7 +1,7 @@
 /**
  * Quick balanced binary search tree
  *
- * @version 2014-05-21_001
+ * @version 2014-05-29_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -31,15 +31,15 @@
  */
 #include "qtree.h"
 
-static inline qtree_node *_qtree_findnode(qtree *, void *);
-static inline int        _qtree_insertnode(qtree *, qtree_node *);
-static inline void       _qtree_removenode(qtree *, qtree_node *);
-static inline qtree_node *_qtree_unlinknode(qtree *, qtree_node *);
-static inline void       _qtree_insblnc(qtree *, qtree_node *, qtree_node *);
-static inline void       _qtree_rmblnc(qtree *, int, qtree_node *);
-static inline void       _qtree_init(qtree *, int (*)(void *, void *));
-static inline void       _qtree_iteratorinit(qtree *, qtree_it *);
-static inline void       _qtree_clear(qtree *);
+static inline qtree_node *qtree_impl_findnode(qtree *, void *);
+static inline int        qtree_impl_insertnode(qtree *, qtree_node *);
+static inline void       qtree_impl_removenode(qtree *, qtree_node *);
+static inline qtree_node *qtree_impl_unlinknode(qtree *, qtree_node *);
+static inline void       qtree_impl_rebalance_insert(qtree *, qtree_node *, qtree_node *);
+static inline void       qtree_impl_rebalance_remove(qtree *, int, qtree_node *);
+static inline void       qtree_impl_init(qtree *, int (*)(void *, void *));
+static inline void       qtree_impl_iteratorinit(qtree *, qtree_it *);
+static inline void       qtree_impl_clear(qtree *);
 
 qtree *qtree_alloc(int (*qtree_cmp_func)(void *, void *))
 {
@@ -48,7 +48,7 @@ qtree *qtree_alloc(int (*qtree_cmp_func)(void *, void *))
     qtree_obj = malloc(sizeof(qtree));
     if (qtree_obj != NULL)
     {
-        _qtree_init(qtree_obj, qtree_cmp_func);
+        qtree_impl_init(qtree_obj, qtree_cmp_func);
     }
 
     return qtree_obj;
@@ -56,79 +56,81 @@ qtree *qtree_alloc(int (*qtree_cmp_func)(void *, void *))
 
 void qtree_dealloc(qtree *qtree_obj)
 {
-    _qtree_clear(qtree_obj);
+    qtree_impl_clear(qtree_obj);
     free(qtree_obj);
 }
 
 void qtree_clear(qtree *qtree_obj)
 {
-    _qtree_clear(qtree_obj);
+    qtree_impl_clear(qtree_obj);
     qtree_obj->size = 0;
     qtree_obj->root = NULL;
 }
 
 void qtree_init(qtree *qtree_obj, int (*qtree_cmp_func)(void *, void *))
 {
-    _qtree_init(qtree_obj, qtree_cmp_func);
+    qtree_impl_init(qtree_obj, qtree_cmp_func);
 }
 
 int qtree_insert(qtree *qtree_obj, void *key, void *val)
 {
-    qtree_node *nx;
+    qtree_node *node;
     int        rc;
 
-    nx = malloc(sizeof(qtree_node));
-    if (nx != NULL)
+    node = malloc(sizeof(qtree_node));
+    if (node != NULL)
     {
-        nx->key  = key;
-        nx->val  = val;
+        node->key = key;
+        node->val = val;
 
-        rc = _qtree_insertnode(qtree_obj, nx);
+        rc = qtree_impl_insertnode(qtree_obj, node);
         if (rc == QTREE_ERR_EXISTS)
         {
-            free(nx);
+            free(node);
         }
-    } else {
+    }
+    else
+    {
         rc = QTREE_ERR_NOMEM;
     }
 
     return rc;
 }
 
-int qtree_insertnode(qtree *qtree_obj, qtree_node *nx)
+int qtree_insertnode(qtree *qtree_obj, qtree_node *node)
 {
-    return _qtree_insertnode(qtree_obj, nx);
+    return qtree_impl_insertnode(qtree_obj, node);
 }
 
 void qtree_remove(qtree *qtree_obj, void *key)
 {
-    qtree_node *crt;
+    qtree_node *node;
 
-    crt = _qtree_findnode(qtree_obj, key);
-    if (crt != NULL)
+    node = qtree_impl_findnode(qtree_obj, key);
+    if (node != NULL)
     {
-        _qtree_removenode(qtree_obj, crt);
+        qtree_impl_removenode(qtree_obj, node);
     }
 }
 
-void qtree_removenode(qtree *qtree_obj, qtree_node *crt)
+void qtree_removenode(qtree *qtree_obj, qtree_node *node)
 {
-    _qtree_removenode(qtree_obj, crt);
+    qtree_impl_removenode(qtree_obj, node);
 }
 
-qtree_node *qtree_unlinknode(qtree *qtree_obj, qtree_node *crt)
+qtree_node *qtree_unlinknode(qtree *qtree_obj, qtree_node *node)
 {
-    return _qtree_unlinknode(qtree_obj, crt);
+    return qtree_impl_unlinknode(qtree_obj, node);
 }
 
 void *qtree_get(qtree *qtree_obj, void *key)
 {
-    qtree_node *nx;
+    qtree_node *node;
 
-    nx = _qtree_findnode(qtree_obj, key);
-    if (nx != NULL)
+    node = qtree_impl_findnode(qtree_obj, key);
+    if (node != NULL)
     {
-        return nx->val;
+        return node->val;
     }
 
     return NULL;
@@ -136,7 +138,7 @@ void *qtree_get(qtree *qtree_obj, void *key)
 
 qtree_node *qtree_getnode(qtree *qtree_obj, void *key)
 {
-    return _qtree_findnode(qtree_obj, key);
+    return qtree_impl_findnode(qtree_obj, key);
 }
 
 size_t qtree_get_size(qtree *qtree_obj)
@@ -146,551 +148,664 @@ size_t qtree_get_size(qtree *qtree_obj)
 
 qtree_it *qtree_iterator(qtree *qtree_obj)
 {
-    qtree_it *it;
+    qtree_it *iter;
 
-    it = malloc(sizeof(qtree_it));
-    if (it != NULL)
+    iter = malloc(sizeof(qtree_it));
+    if (iter != NULL)
     {
-        _qtree_iteratorinit(qtree_obj, it);
+        qtree_impl_iteratorinit(qtree_obj, iter);
     }
 
-    return it;
+    return iter;
 }
 
-void qtree_iteratorinit(qtree *qtree_obj, qtree_it *it)
+void qtree_iteratorinit(qtree *qtree_obj, qtree_it *iter)
 {
-    _qtree_iteratorinit(qtree_obj, it);
+    qtree_impl_iteratorinit(qtree_obj, iter);
 }
 
-qtree_node *qtree_next(qtree_it *it)
+qtree_node *qtree_next(qtree_it *iter)
 {
-    qtree_node *ret;
-    qtree_node *n;
+    qtree_node *ret_node;
+    qtree_node *next_node;
 
-    ret  = it->next;
+    ret_node = iter->next;
 
-    if (ret != NULL)
+    if (ret_node != NULL)
     {
-        n = ret;
-        if (n->r != NULL)
+        next_node = ret_node;
+        if (next_node->greater != NULL)
         {
-            for (n = n->r; n->l != NULL; n = n->l);
+            for (next_node = next_node->greater;
+                next_node->less != NULL;
+                next_node = next_node->less)
+            {
+                /* intentional no-op block */
+            }
         } else {
             do
             {
-                if (n->p != NULL)
+                if (next_node->parent != NULL)
                 {
-                    if (n->p->l == n)
+                    if (next_node->parent->less == next_node)
                     {
-                        n = n->p;
+                        next_node = next_node->parent;
                         break;
                     }
                 }
-                n = n->p;
-            } while (n != NULL);
+                next_node = next_node->parent;
+            }
+            while (next_node != NULL);
         }
-        it->next = n;
+        iter->next = next_node;
     }
 
-    return ret;
+    return ret_node;
 }
 
-static inline void _qtree_rmblnc(qtree *qtree_obj, int dir, qtree_node *r)
+/**
+ * Rebalances the tree after node removal
+ *
+ * WARNING! The order of statements, especially assignments, in this function
+ *          is critical for the function's correct operation.
+ *          DO NOT CHANGE THE ORDER OF ANY STATEMENTS.
+ */
+static inline void qtree_impl_rebalance_remove(qtree *qtree_obj, int dir, qtree_node *rot_node)
 {
-    qtree_node *n;
+    qtree_node *sub_node;
 
     /* update balance and perform rotations */
-    for (; r != NULL; r = r->p)
+    for (; rot_node != NULL; rot_node = rot_node->parent)
     {
         if (dir < 0)
         {
             /* node was removed from left subtree */
-            if (++(r->blnc) == 1)
+            if (++(rot_node->balance) == 1)
             {
                 break;
             }
-        } else {
+        }
+        else
+        {
             /* node was removed from right subtree */
-            if (--(r->blnc) == -1)
+            if (--(rot_node->balance) == -1)
             {
                 break;
             }
         }
 
-        if (r->p != NULL)
+        if (rot_node->parent != NULL)
         {
-            if (r->p->l == r)
+            if (rot_node->parent->less == rot_node)
             {
                 dir = -1;
-            } else {
+            }
+            else
+            {
                 dir = 1;
             }
         }
 
         /* update balance and perform rotations */
-        if (r->blnc == -2)
+        if (rot_node->balance == -2)
         {
-            n = r->l;
+            sub_node = rot_node->less;
             /* 0 or -1 */
-            if (n->blnc <= 0)
+            if (sub_node->balance <= 0)
             {
                 /* rotate R */
-                n->p = r->p;
-                if (r->p != NULL)
+                sub_node->parent = rot_node->parent;
+                if (rot_node->parent != NULL)
                 {
-                    if (r->p->l == r)
+                    if (rot_node->parent->less == rot_node)
                     {
-                        r->p->l = n;
-                    } else {
-                        r->p->r = n;
+                        rot_node->parent->less = sub_node;
                     }
-                } else {
-                    qtree_obj->root = n;
+                    else
+                    {
+                        rot_node->parent->greater = sub_node;
+                    }
+                }
+                else
+                {
+                    qtree_obj->root = sub_node;
                 }
 
-                r->l = n->r;
-                if (n->r != NULL)
+                rot_node->less = sub_node->greater;
+                if (sub_node->greater != NULL)
                 {
-                    n->r->p = r;
+                    sub_node->greater->parent = rot_node;
                 }
 
-                n->r = r;
-                r->p = n;
+                sub_node->greater = rot_node;
+                rot_node->parent = sub_node;
 
-                if (n->blnc == 0)
+                if (sub_node->balance == 0)
                 {
-                    r->blnc = -1;
-                    n->blnc = 1;
+                    rot_node->balance = -1;
+                    sub_node->balance = 1;
                     break;
-                } else {
-                    r->blnc = 0;
-                    n->blnc = 0;
                 }
-            } else {
-                /* rotate LR */
-                if (n->r->blnc == -1)
+                else
                 {
-                    n->blnc = 0;
-                    r->blnc = 1;
-                } else
-                if (n->r->blnc == 1)
-                {
-                    n->blnc = -1;
-                    r->blnc = 0;
-                } else {
-                    n->blnc = 0;
-                    r->blnc = 0;
+                    rot_node->balance = 0;
+                    sub_node->balance = 0;
                 }
-                n->r->blnc = 0;
-
-                n->p    = n->r;
-                n->r    = n->r->l;
-                n->p->l = n;
-                r->l    = n->p->r;
-                n->p->p = r->p;
-                if (n->r != NULL)
-                {
-                    n->r->p = n;
-                }
-                if (r->l != NULL)
-                {
-                    r->l->p = r;
-                }
-
-                if (r->p != NULL)
-                {
-                    if (r->p->l == r)
-                    {
-                        r->p->l = n->p;
-                    } else {
-                        r->p->r = n->p;
-                    }
-                } else {
-                    qtree_obj->root = n->p;
-                }
-
-                r->p    = n->p;
-                n->p->r = r;
             }
-            r = r->p;
+            else
+            {
+                /* rotate LR */
+                if (sub_node->greater->balance == -1)
+                {
+                    sub_node->balance = 0;
+                    rot_node->balance = 1;
+                }
+                else
+                if (sub_node->greater->balance == 1)
+                {
+                    sub_node->balance = -1;
+                    rot_node->balance = 0;
+                }
+                else
+                {
+                    sub_node->balance = 0;
+                    rot_node->balance = 0;
+                }
+                sub_node->greater->balance = 0;
+
+                sub_node->parent    = sub_node->greater;
+                sub_node->greater    = sub_node->greater->less;
+                sub_node->parent->less = sub_node;
+                rot_node->less    = sub_node->parent->greater;
+                sub_node->parent->parent = rot_node->parent;
+                if (sub_node->greater != NULL)
+                {
+                    sub_node->greater->parent = sub_node;
+                }
+                if (rot_node->less != NULL)
+                {
+                    rot_node->less->parent = rot_node;
+                }
+
+                if (rot_node->parent != NULL)
+                {
+                    if (rot_node->parent->less == rot_node)
+                    {
+                        rot_node->parent->less = sub_node->parent;
+                    }
+                    else
+                    {
+                        rot_node->parent->greater = sub_node->parent;
+                    }
+                }
+                else
+                {
+                    qtree_obj->root = sub_node->parent;
+                }
+
+                rot_node->parent    = sub_node->parent;
+                sub_node->parent->greater = rot_node;
+            }
+            rot_node = rot_node->parent;
             /* end of R / LR rotations */
-        } else
-        if (r->blnc == 2)
+        }
+        else
+        if (rot_node->balance == 2)
         {
-            n = r->r;
+            sub_node = rot_node->greater;
             /* 0 or 1 */
-            if (n->blnc >= 0)
+            if (sub_node->balance >= 0)
             {
                 /* rotate L */
-                n->p = r->p;
-                if (r->p != NULL)
+                sub_node->parent = rot_node->parent;
+                if (rot_node->parent != NULL)
                 {
-                    if (r->p->l == r)
+                    if (rot_node->parent->less == rot_node)
                     {
-                        r->p->l = n;
-                    } else {
-                        r->p->r = n;
+                        rot_node->parent->less = sub_node;
                     }
-                } else {
-                    qtree_obj->root = n;
+                    else
+                    {
+                        rot_node->parent->greater = sub_node;
+                    }
+                }
+                else
+                {
+                    qtree_obj->root = sub_node;
                 }
 
-                r->r = n->l;
-                if (n->l != NULL)
+                rot_node->greater = sub_node->less;
+                if (sub_node->less != NULL)
                 {
-                    n->l->p = r;
+                    sub_node->less->parent = rot_node;
                 }
 
-                n->l = r;
-                r->p = n;
-                if (n->blnc == 0)
+                sub_node->less = rot_node;
+                rot_node->parent = sub_node;
+                if (sub_node->balance == 0)
                 {
-                    r->blnc = 1;
-                    n->blnc = -1;
+                    rot_node->balance = 1;
+                    sub_node->balance = -1;
                     break;
-                } else {
-                    r->blnc = 0;
-                    n->blnc = 0;
                 }
-            } else {
-                /* rotate RL */
-                if (n->l->blnc == -1)
+                else
                 {
-                    n->blnc = 1;
-                    r->blnc = 0;
-                } else
-                if (n->l->blnc == 1)
-                {
-                    n->blnc = 0;
-                    r->blnc = -1;
-                } else {
-                    n->blnc = 0;
-                    r->blnc = 0;
+                    rot_node->balance = 0;
+                    sub_node->balance = 0;
                 }
-                n->l->blnc = 0;
-
-                n->p    = n->l;
-                n->l    = n->l->r;
-                n->p->r = n;
-                r->r    = n->p->l;
-                n->p->p = r->p;
-                if (n->l != NULL)
-                {
-                    n->l->p = n;
-                }
-                if (r->r != NULL)
-                {
-                    r->r->p = r;
-                }
-
-                if (r->p != NULL)
-                {
-                    if (r->p->l == r)
-                    {
-                        r->p->l = n->p;
-                    } else {
-                        r->p->r = n->p;
-                    }
-                } else {
-                    qtree_obj->root = n->p;
-                }
-
-                r->p    = n->p;
-                n->p->l = r;
             }
-            r = r->p;
+            else
+            {
+                /* rotate RL */
+                if (sub_node->less->balance == -1)
+                {
+                    sub_node->balance = 1;
+                    rot_node->balance = 0;
+                }
+                else
+                if (sub_node->less->balance == 1)
+                {
+                    sub_node->balance = 0;
+                    rot_node->balance = -1;
+                }
+                else
+                {
+                    sub_node->balance = 0;
+                    rot_node->balance = 0;
+                }
+                sub_node->less->balance = 0;
+
+                sub_node->parent    = sub_node->less;
+                sub_node->less    = sub_node->less->greater;
+                sub_node->parent->greater = sub_node;
+                rot_node->greater    = sub_node->parent->less;
+                sub_node->parent->parent = rot_node->parent;
+                if (sub_node->less != NULL)
+                {
+                    sub_node->less->parent = sub_node;
+                }
+                if (rot_node->greater != NULL)
+                {
+                    rot_node->greater->parent = rot_node;
+                }
+
+                if (rot_node->parent != NULL)
+                {
+                    if (rot_node->parent->less == rot_node)
+                    {
+                        rot_node->parent->less = sub_node->parent;
+                    }
+                    else
+                    {
+                        rot_node->parent->greater = sub_node->parent;
+                    }
+                }
+                else
+                {
+                    qtree_obj->root = sub_node->parent;
+                }
+
+                rot_node->parent    = sub_node->parent;
+                sub_node->parent->less = rot_node;
+            }
+            rot_node = rot_node->parent;
             /* end of L / RL rotations */
         }
     } /* end update */
 }
 
-static inline void _qtree_insblnc(qtree *qtree_obj, qtree_node *nx, qtree_node *ny)
+/**
+ * Rebalances the tree after node insertion
+ *
+ * WARNING! The order of statements, especially assignments, in this function
+ *          is critical for the function's correct operation.
+ *          DO NOT CHANGE THE ORDER OF ANY STATEMENTS.
+ */
+static inline void qtree_impl_rebalance_insert(
+    qtree      *qtree_obj,
+    qtree_node *sub_node,
+    qtree_node *rot_node
+)
 {
     /* update balance and perform rotations */
     do
     {
-        if (ny->l == nx)
+        if (rot_node->less == sub_node)
         {
-            --(ny->blnc);
-        } else {
-            ++(ny->blnc);
+            --(rot_node->balance);
+        }
+        else
+        {
+            ++(rot_node->balance);
         }
 
-        if (ny->blnc == 0)
+        if (rot_node->balance == 0)
         {
             break;
-        } else
-        if (ny->blnc == -2)
+        }
+        else
+        if (rot_node->balance == -2)
         {
-            if (nx->blnc == -1)
+            if (sub_node->balance == -1)
             {
                 /* rotate R */
-                ny->blnc = 0;
-                nx->blnc = 0;
+                rot_node->balance = 0;
+                sub_node->balance = 0;
 
-                nx->p = ny->p;
-                if (ny->p != NULL)
+                sub_node->parent = rot_node->parent;
+                if (rot_node->parent != NULL)
                 {
-                    if (ny->p->l == ny)
+                    if (rot_node->parent->less == rot_node)
                     {
-                        ny->p->l = nx;
-                    } else {
-                        ny->p->r = nx;
+                        rot_node->parent->less = sub_node;
                     }
-                } else {
-                    qtree_obj->root = nx;
+                    else
+                    {
+                        rot_node->parent->greater = sub_node;
+                    }
                 }
-
-                ny->l = nx->r;
-                if (nx->r != NULL)
+                else
                 {
-                    nx->r->p = ny;
+                    qtree_obj->root = sub_node;
                 }
 
-                nx->r = ny;
-                ny->p = nx;
-            } else {
+                rot_node->less = sub_node->greater;
+                if (sub_node->greater != NULL)
+                {
+                    sub_node->greater->parent = rot_node;
+                }
+
+                sub_node->greater = rot_node;
+                rot_node->parent = sub_node;
+            }
+            else
+            {
                 /* rotate LR */
-                if (nx->r->blnc == -1)
+                if (sub_node->greater->balance == -1)
                 {
-                    nx->blnc = 0;
-                    ny->blnc = 1;
-                } else
-                if (nx->r->blnc == 1)
-                {
-                    nx->blnc = -1;
-                    ny->blnc = 0;
-                } else {
-                    nx->blnc = 0;
-                    ny->blnc = 0;
+                    sub_node->balance = 0;
+                    rot_node->balance = 1;
                 }
-                nx->r->blnc = 0;
+                else
+                if (sub_node->greater->balance == 1)
+                {
+                    sub_node->balance = -1;
+                    rot_node->balance = 0;
+                }
+                else
+                {
+                    sub_node->balance = 0;
+                    rot_node->balance = 0;
+                }
+                sub_node->greater->balance = 0;
 
-                nx->p = nx->r;
-                nx->r = nx->r->l;
-                nx->p->l = nx;
-                ny->l = nx->p->r;
-                nx->p->p = ny->p;
-                if (nx->r != NULL)
+                sub_node->parent         = sub_node->greater;
+                sub_node->greater        = sub_node->greater->less;
+                sub_node->parent->less   = sub_node;
+                rot_node->less           = sub_node->parent->greater;
+                sub_node->parent->parent = rot_node->parent;
+                if (sub_node->greater != NULL)
                 {
-                    nx->r->p = nx;
+                    sub_node->greater->parent = sub_node;
                 }
-                if (ny->l != NULL)
+                if (rot_node->less != NULL)
                 {
-                    ny->l->p = ny;
+                    rot_node->less->parent = rot_node;
                 }
 
-                if (ny->p != NULL)
+                if (rot_node->parent != NULL)
                 {
-                    if (ny->p->l == ny)
+                    if (rot_node->parent->less == rot_node)
                     {
-                        ny->p->l = nx->p;
-                    } else {
-                        ny->p->r = nx->p;
+                        rot_node->parent->less = sub_node->parent;
                     }
-                } else {
-                    qtree_obj->root = nx->p;
+                    else
+                    {
+                        rot_node->parent->greater = sub_node->parent;
+                    }
+                }
+                else
+                {
+                    qtree_obj->root = sub_node->parent;
                 }
 
-                ny->p = nx->p;
-                nx->p->r = ny;
+                rot_node->parent          = sub_node->parent;
+                sub_node->parent->greater = rot_node;
             }
             break;
-        } else
-        if (ny->blnc == 2)
+        }
+        else
+        if (rot_node->balance == 2)
         {
-            if (nx->blnc == 1)
+            if (sub_node->balance == 1)
             {
                 /* rotate L */
-                ny->blnc = 0;
-                nx->blnc = 0;
+                rot_node->balance = 0;
+                sub_node->balance = 0;
 
-                nx->p = ny->p;
-                if (ny->p != NULL)
+                sub_node->parent = rot_node->parent;
+                if (rot_node->parent != NULL)
                 {
-                    if (ny->p->l == ny)
+                    if (rot_node->parent->less == rot_node)
                     {
-                        ny->p->l = nx;
-                    } else {
-                        ny->p->r = nx;
+                        rot_node->parent->less = sub_node;
                     }
-                } else {
-                    qtree_obj->root = nx;
+                    else
+                    {
+                        rot_node->parent->greater = sub_node;
+                    }
                 }
-
-                ny->r = nx->l;
-                if (nx->l != NULL)
+                else
                 {
-                    nx->l->p = ny;
+                    qtree_obj->root = sub_node;
                 }
 
-                nx->l = ny;
-                ny->p = nx;
-            } else {
+                rot_node->greater = sub_node->less;
+                if (sub_node->less != NULL)
+                {
+                    sub_node->less->parent = rot_node;
+                }
+
+                sub_node->less = rot_node;
+                rot_node->parent = sub_node;
+            }
+            else
+            {
                 /* rotate RL */
-                if (nx->l->blnc == -1)
+                if (sub_node->less->balance == -1)
                 {
-                    nx->blnc = 1;
-                    ny->blnc = 0;
-                } else
-                if (nx->l->blnc == 1)
-                {
-                    nx->blnc = 0;
-                    ny->blnc = -1;
-                } else {
-                    nx->blnc = 0;
-                    ny->blnc = 0;
+                    sub_node->balance = 1;
+                    rot_node->balance = 0;
                 }
-                nx->l->blnc = 0;
+                else
+                if (sub_node->less->balance == 1)
+                {
+                    sub_node->balance = 0;
+                    rot_node->balance = -1;
+                }
+                else
+                {
+                    sub_node->balance = 0;
+                    rot_node->balance = 0;
+                }
+                sub_node->less->balance = 0;
 
-                nx->p = nx->l;
-                nx->l = nx->l->r;
-                nx->p->r = nx;
-                ny->r = nx->p->l;
-                nx->p->p = ny->p;
-                if (nx->l != NULL)
+                sub_node->parent          = sub_node->less;
+                sub_node->less            = sub_node->less->greater;
+                sub_node->parent->greater = sub_node;
+                rot_node->greater         = sub_node->parent->less;
+                sub_node->parent->parent  = rot_node->parent;
+                if (sub_node->less != NULL)
                 {
-                    nx->l->p = nx;
+                    sub_node->less->parent = sub_node;
                 }
-                if (ny->r != NULL)
+                if (rot_node->greater != NULL)
                 {
-                    ny->r->p = ny;
+                    rot_node->greater->parent = rot_node;
                 }
 
-                if (ny->p != NULL)
+                if (rot_node->parent != NULL)
                 {
-                    if (ny->p->l == ny)
+                    if (rot_node->parent->less == rot_node)
                     {
-                        ny->p->l = nx->p;
-                    } else {
-                        ny->p->r = nx->p;
+                        rot_node->parent->less = sub_node->parent;
                     }
-                } else {
-                    qtree_obj->root = nx->p;
+                    else
+                    {
+                        rot_node->parent->greater = sub_node->parent;
+                    }
+                }
+                else
+                {
+                    qtree_obj->root = sub_node->parent;
                 }
 
-                ny->p = nx->p;
-                nx->p->l = ny;
+                rot_node->parent       = sub_node->parent;
+                sub_node->parent->less = rot_node;
             }
             break;
         }
 
-        nx   = ny;
-        ny = ny->p;
-    } while (ny != NULL);
+        sub_node = rot_node;
+        rot_node = rot_node->parent;
+    }
+    while (rot_node != NULL);
 }
 
-static inline int _qtree_insertnode(qtree *qtree_obj, qtree_node *nx)
+static inline int qtree_impl_insertnode(qtree *qtree_obj, qtree_node *ins_node)
 {
-    qtree_node *ny;
+    qtree_node *parent_node;
     int        rc;
 
     if (qtree_obj->root == NULL)
     {
-        qtree_obj->root = nx;
+        qtree_obj->root   = ins_node;
+        ins_node->less    = NULL;
+        ins_node->greater = NULL;
+        ins_node->parent  = NULL;
+        ins_node->balance = 0;
         ++(qtree_obj->size);
-        nx->l    = NULL;
-        nx->r    = NULL;
-        nx->p    = NULL;
-        nx->blnc = 0;
-    } else {
-        ny = qtree_obj->root;
+    }
+    else
+    {
+        parent_node = qtree_obj->root;
         for (;;)
         {
-            rc = qtree_obj->qtree_cmp(nx->key, ny->key);
+            rc = qtree_obj->qtree_cmp(ins_node->key, parent_node->key);
             if (rc < 0)
             {
-                if (ny->l == NULL)
+                if (parent_node->less == NULL)
                 {
-                    ny->l    = nx;
-                    nx->p    = ny;
-                    nx->l    = NULL;
-                    nx->r    = NULL;
-                    nx->blnc = 0;
+                    parent_node->less = ins_node;
+                    ins_node->parent  = parent_node;
+                    ins_node->less    = NULL;
+                    ins_node->greater = NULL;
+                    ins_node->balance = 0;
                     ++(qtree_obj->size);
                     break;
-                } else {
-                    ny = ny->l;
                 }
-            } else
+                else
+                {
+                    parent_node = parent_node->less;
+                }
+            }
+            else
             if (rc > 0)
             {
-                if (ny->r == NULL)
+                if (parent_node->greater == NULL)
                 {
-                    ny->r    = nx;
-                    nx->p    = ny;
-                    nx->l    = NULL;
-                    nx->r    = NULL;
-                    nx->blnc = 0;
+                    parent_node->greater = ins_node;
+                    ins_node->parent     = parent_node;
+                    ins_node->less       = NULL;
+                    ins_node->greater    = NULL;
+                    ins_node->balance    = 0;
                     ++(qtree_obj->size);
                     break;
-                } else {
-                    ny = ny->r;
                 }
-            } else {
+                else
+                {
+                    parent_node = parent_node->greater;
+                }
+            }
+            else
+            {
                 return QTREE_ERR_EXISTS;
             }
         }
-        _qtree_insblnc(qtree_obj, nx, ny);
+        qtree_impl_rebalance_insert(qtree_obj, ins_node, parent_node);
     }
 
     return QTREE_PASS;
 }
 
-static inline void _qtree_removenode(qtree *qtree_obj, qtree_node *crt)
+static inline void qtree_impl_removenode(qtree *qtree_obj, qtree_node *crt)
 {
-    free(_qtree_unlinknode(qtree_obj, crt));
+    free(qtree_impl_unlinknode(qtree_obj, crt));
 }
 
-static inline qtree_node *_qtree_unlinknode(qtree *qtree_obj, qtree_node *crt)
+static inline qtree_node *qtree_impl_unlinknode(qtree *qtree_obj, qtree_node *rm_node)
 {
-    qtree_node *n;
-    qtree_node *r;
+    qtree_node *rep_node;
+    qtree_node *rot_node;
     int        dir;
 
     --(qtree_obj->size);
 
-    if (crt->l == NULL && crt->r == NULL)
+    if (rm_node->less == NULL && rm_node->greater == NULL)
     {
         /* leaf node - removal without replacement */
-        n = crt;
-        if (qtree_obj->root == crt)
+        rep_node = rm_node;
+        if (qtree_obj->root == rm_node)
         {
             /* root node leaf */
             qtree_obj->root = NULL;
-        } else {
+        }
+        else
+        {
             /* non-root node leaf */
-            r = n->p;
-            if (r->l == n)
+            rot_node = rep_node->parent;
+            if (rot_node->less == rep_node)
             {
                 /* node to remove is in the left subtree *
                  * of its parent                         */
 
                 /* save direction */
                 dir = -1;
-                r->l = NULL;
-            } else {
+                rot_node->less = NULL;
+            }
+            else
+            {
                 /* node to remove is in the right subtree *
                  * of its parent                          */
 
                 /* save direction */
                 dir = 1;
-                r->r = NULL;
+                rot_node->greater = NULL;
             }
-            _qtree_rmblnc(qtree_obj, dir, r);
+            qtree_impl_rebalance_remove(qtree_obj, dir, rot_node);
         }
-    } else {
+    }
+    else
+    {
         /* not a leaf node, removal by replacement                       *
          * at least one child, or a child and a subtree, or two subtrees *
          * find replacement node                                         */
-        if (crt->blnc == -1)
+        if (rm_node->balance == -1)
         {
-            for (n = crt->l; n->r != NULL; n = n->r) { }
-        } else {
-            for (n = crt->r; n->l != NULL; n = n->l) { }
+            for (rep_node = rm_node->less; rep_node->greater != NULL; rep_node = rep_node->greater)
+            {
+                /* intentional no-op block */
+            }
         }
-        r = n->p;
-        if (r->l == n)
+        else
+        {
+            for (rep_node = rm_node->greater; rep_node->less != NULL; rep_node = rep_node->less)
+            {
+                /* intentional no-op block */
+            }
+        }
+        rot_node = rep_node->parent;
+        if (rot_node->less == rep_node)
         {
             /* node to remove is in the left subtree *
              * of its parent                         */
@@ -698,97 +813,113 @@ static inline qtree_node *_qtree_unlinknode(qtree *qtree_obj, qtree_node *crt)
             /* save direction */
             dir = -1;
 
-            if (n->l != NULL)
+            if (rep_node->less != NULL)
             {
                 /* replace node by its left child */
-                r->l = n->l;
-                n->l->p = r;
-            } else
-            if (n->r != NULL)
+                rot_node->less         = rep_node->less;
+                rep_node->less->parent = rot_node;
+            }
+            else
+            if (rep_node->greater != NULL)
             {
                 /* replace node by its right child */
-                r->l = n->r;
-                n->r->p = r;
-            } else {
-                /* non-root leaf node */
-                r->l = NULL;
+                rot_node->less            = rep_node->greater;
+                rep_node->greater->parent = rot_node;
             }
-        } else {
+            else
+            {
+                /* non-root leaf node */
+                rot_node->less = NULL;
+            }
+        }
+        else
+        {
             /* node to remove is in the right subtree *
              * of its parent                          */
 
             /* save direction */
             dir = 1;
 
-            if (n->l != NULL)
+            if (rep_node->less != NULL)
             {
                 /* replace node by its left child */
-                r->r = n->l;
-                n->l->p = r;
-            } else
-            if (n->r != NULL)
+                rot_node->greater      = rep_node->less;
+                rep_node->less->parent = rot_node;
+            }
+            else
+            if (rep_node->greater != NULL)
             {
                 /* replace node by its right child */
-                r->r = n->r;
-                n->r->p = r;
-            } else {
+                rot_node->greater         = rep_node->greater;
+                rep_node->greater->parent = rot_node;
+            }
+            else
+            {
                 /* non-root leaf node */
-                r->r = NULL;
+                rot_node->greater = NULL;
             }
         }
 
         /* replace node contents */
-        crt->key = n->key;
-        crt->val = n->val;
+        rm_node->key = rep_node->key;
+        rm_node->val = rep_node->val;
 
-        _qtree_rmblnc(qtree_obj, dir, r);
+        qtree_impl_rebalance_remove(qtree_obj, dir, rot_node);
     }
 
-    return n;
+    return rep_node;
 }
 
-static inline qtree_node *_qtree_findnode(qtree *qtree_obj, void *key)
+static inline qtree_node *qtree_impl_findnode(qtree *qtree_obj, void *key)
 {
-    qtree_node *nx;
-    int rc;
+    qtree_node *node;
+    int        rc;
 
-    nx = qtree_obj->root;
-    while (nx != NULL)
+    node = qtree_obj->root;
+    while (node != NULL)
     {
-        rc = qtree_obj->qtree_cmp(key, nx->key);
+        rc = qtree_obj->qtree_cmp(key, node->key);
         if (rc < 0)
         {
-            nx = nx->l;
-        } else
+            node = node->less;
+        }
+        else
         if (rc > 0)
         {
-            nx = nx->r;
-        } else {
-            return nx;
+            node = node->greater;
+        }
+        else
+        {
+            return node;
         }
     }
 
     return NULL;
 }
 
-static inline void _qtree_init(qtree *qtree_obj, int (*qtree_cmp_func)(void *, void *))
+static inline void qtree_impl_init(qtree *qtree_obj, int (*qtree_cmp_func)(void *, void *))
 {
-    qtree_obj->root = NULL;
-    qtree_obj->size = 0;
+    qtree_obj->root      = NULL;
+    qtree_obj->size      = 0;
     qtree_obj->qtree_cmp = (int (*)(void *, void *)) qtree_cmp_func;
 }
 
-static inline void _qtree_iteratorinit(qtree *qtree_obj, qtree_it *it)
+static inline void qtree_impl_iteratorinit(qtree *qtree_obj, qtree_it *iter)
 {
     if (qtree_obj->root != NULL)
     {
-        for (it->next = qtree_obj->root; it->next->l != NULL; it->next = it->next->l) { }
-    } else {
-        it->next = NULL;
+        for (iter->next = qtree_obj->root; iter->next->less != NULL; iter->next = iter->next->less)
+        {
+            /* intentional no-op block */
+        }
+    }
+    else
+    {
+        iter->next = NULL;
     }
 }
 
-static inline void _qtree_clear(qtree *qtree_obj)
+static inline void qtree_impl_clear(qtree *qtree_obj)
 {
     if (qtree_obj != NULL)
     {
@@ -799,23 +930,28 @@ static inline void _qtree_clear(qtree *qtree_obj)
 
         while (node != NULL)
         {
-            if (node->l != NULL)
+            if (node->less != NULL)
             {
-                node = node->l;
-            } else
-            if (node->r != NULL)
+                node = node->less;
+            }
+            else
+            if (node->greater != NULL)
             {
-                node = node->r;
-            } else {
+                node = node->greater;
+            }
+            else
+            {
                 leaf = node;
-                node = node->p;
+                node = node->parent;
                 if (node != NULL)
                 {
-                    if (leaf == node->l)
+                    if (leaf == node->less)
                     {
-                        node->l = NULL;
-                    } else {
-                        node->r = NULL;
+                        node->less = NULL;
+                    }
+                    else
+                    {
+                        node->greater = NULL;
                     }
                 }
                 free(leaf);

@@ -12,7 +12,8 @@ extern "C" {
 
     size_t gbsearch(void **, size_t, void *, int (*)(void *, void *));
     size_t bsearch_ull(
-        unsigned long long *, size_t,
+        unsigned long long *,
+        size_t,
         unsigned long long
     );
 

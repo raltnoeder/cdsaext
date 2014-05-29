@@ -1,7 +1,7 @@
 /**
  * Binary search in a sorted array
  *
- * @version 2014-01-04_001
+ * @version 2014-05-29_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -32,12 +32,15 @@
 #include "bsearch.h"
 
 size_t gbsearch(
-    void *arr[], size_t arr_len,
-    void *val,
-    int (*comp_func)(void *, void *)
+    void   *arr[],
+    size_t arr_len,
+    void   *val,
+    int    (*comp_func)(void *, void *)
 )
 {
-    size_t sidx, eidx, midx;
+    size_t sidx;
+    size_t eidx;
+    size_t midx;
     size_t width;
 
     sidx = 0;
@@ -49,11 +52,14 @@ size_t gbsearch(
         if (comp_func(arr[midx], val) == 0)
         {
             return midx;
-        } else
+        }
+        else
         if (comp_func(arr[midx], val) > 0)
         {
             eidx = midx;
-        } else {
+        }
+        else
+        {
             sidx = midx + 1;
         }
     }
@@ -62,11 +68,14 @@ size_t gbsearch(
 }
 
 size_t bsearch_ull(
-    unsigned long long arr[], size_t arr_len,
+    unsigned long long arr[],
+    size_t             arr_len,
     unsigned long long val
 )
 {
-    size_t sidx, eidx, midx;
+    size_t sidx;
+    size_t eidx;
+    size_t midx;
     size_t width;
 
     sidx = 0;
@@ -78,11 +87,14 @@ size_t bsearch_ull(
         if (arr[midx] == val)
         {
             return midx;
-        } else
+        }
+        else
         if (arr[midx] > val)
         {
             eidx = midx;
-        } else {
+        }
+        else
+        {
             sidx = midx + 1;
         }
     }

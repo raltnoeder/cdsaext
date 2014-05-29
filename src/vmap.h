@@ -12,14 +12,16 @@ extern "C" {
 #define VMAP_ERR_NOMEM 1
 #define VMAP_PASS      0
 
-    typedef struct vmap_struct {
+    typedef struct vmap_struct
+    {
         struct vmap_node_struct  *head;
         struct vmap_node_struct  *tail;
         size_t                   size;
         int                      (*vmap_cmp)(void *, void *);
     } vmap;
 
-    typedef struct vmap_node_struct {
+    typedef struct vmap_node_struct
+    {
         struct vmap_node_struct  *next;
         struct vmap_node_struct  *prev;
         void*                    key;
