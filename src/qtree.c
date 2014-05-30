@@ -1,7 +1,7 @@
 /**
  * Quick balanced binary search tree
  *
- * @version 2014-05-29_001
+ * @version 2014-05-30_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -177,12 +177,14 @@ qtree_node *qtree_next(qtree_it *iter)
         if (next_node->greater != NULL)
         {
             for (next_node = next_node->greater;
-                next_node->less != NULL;
-                next_node = next_node->less)
+                 next_node->less != NULL;
+                 next_node = next_node->less)
             {
                 /* intentional no-op block */
             }
-        } else {
+        }
+        else
+        {
             do
             {
                 if (next_node->parent != NULL)
@@ -792,14 +794,18 @@ static inline qtree_node *qtree_impl_unlinknode(qtree *qtree_obj, qtree_node *rm
          * find replacement node                                         */
         if (rm_node->balance == -1)
         {
-            for (rep_node = rm_node->less; rep_node->greater != NULL; rep_node = rep_node->greater)
+            for (rep_node = rm_node->less;
+                 rep_node->greater != NULL;
+                 rep_node = rep_node->greater)
             {
                 /* intentional no-op block */
             }
         }
         else
         {
-            for (rep_node = rm_node->greater; rep_node->less != NULL; rep_node = rep_node->less)
+            for (rep_node = rm_node->greater;
+                 rep_node->less != NULL;
+                 rep_node = rep_node->less)
             {
                 /* intentional no-op block */
             }
@@ -908,7 +914,9 @@ static inline void qtree_impl_iteratorinit(qtree *qtree_obj, qtree_it *iter)
 {
     if (qtree_obj->root != NULL)
     {
-        for (iter->next = qtree_obj->root; iter->next->less != NULL; iter->next = iter->next->less)
+        for (iter->next = qtree_obj->root;
+             iter->next->less != NULL;
+             iter->next = iter->next->less)
         {
             /* intentional no-op block */
         }

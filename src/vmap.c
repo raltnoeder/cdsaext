@@ -1,7 +1,7 @@
 /**
  * Vector map
  *
- * @version 2014-05-29_001
+ * @version 2014-05-30_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -300,7 +300,9 @@ static inline void vmap_impl_insertnodebeforenode(vmap *vmap_obj, vmap_node *crt
     if (ins->prev == NULL)
     {
         vmap_obj->head = ins;
-    } else {
+    }
+    else
+    {
         ins->prev->next = ins;
     }
 
@@ -320,6 +322,8 @@ static inline void vmap_impl_clear(vmap *vmap_obj)
     vmap_node *node;
     vmap_node *next;
 
+    /* The "node = next" assignment executes after the
+     * "next = node->next" assignment inside the "for" block */
     for (node = vmap_obj->head; node != NULL; node = next)
     {
         next = node->next;
