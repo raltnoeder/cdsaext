@@ -1,7 +1,7 @@
 /**
  * Binary search in a sorted array
  *
- * @version 2014-05-29_001
+ * @version 2014-07-09_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -30,6 +30,8 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 #include "bsearch.h"
+
+const size_t BSEARCH_NPOS = ((size_t) ~0);
 
 size_t gbsearch(
     void   *arr[],
@@ -67,10 +69,10 @@ size_t gbsearch(
     return BSEARCH_NPOS;
 }
 
-size_t bsearch_ull(
-    unsigned long long arr[],
-    size_t             arr_len,
-    unsigned long long val
+size_t bsearch_uint64(
+    uint64_t arr[],
+    size_t   arr_len,
+    uint64_t val
 )
 {
     size_t sidx;

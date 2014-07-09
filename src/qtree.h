@@ -9,20 +9,23 @@
 extern "C" {
 #endif
 
-#define QTREE_ERR_EXISTS 2
-#define QTREE_ERR_NOMEM  1
-#define QTREE_PASS       0
+    typedef enum
+    {
+        QTREE_PASS       = 0,
+        QTREE_ERR_NOMEM  = 1,
+        QTREE_ERR_EXISTS = 2
+    }
+    qtree_rc;
 
-#define QTREE_STATE_ENTER_L 0
-#define QTREE_STATE_ENTER_H 1
-#define QTREE_STATE_LEAVE   2
+    typedef int (*qtree_cmp_func)(void *, void *);
 
     typedef struct qtree_struct
     {
         struct   qtreenode_struct  *root;
         size_t                     size;
-        int                        (*qtree_cmp)(void*, void*);
-    } qtree;
+        qtree_cmp_func             qtree_cmp;
+    }
+    qtree;
 
     typedef struct qtreenode_struct
     {
@@ -32,19 +35,21 @@ extern "C" {
         struct qtreenode_struct  *greater;
         struct qtreenode_struct  *parent;
         int                      balance;
-    } qtree_node;
+    }
+    qtree_node;
 
     typedef struct qtree_it_struct
     {
         struct qtreenode_struct  *next;
-    } qtree_it;
+    }
+    qtree_it;
 
     void        qtree_dealloc(qtree *);
     void        qtree_clear(qtree *);
     qtree       *qtree_alloc(int (*)(void *, void *));
     void        qtree_init(qtree *, int (*)(void *, void *));
-    int         qtree_insert(qtree *, void *, void *);
-    int         qtree_insertnode(qtree *, qtree_node *);
+    qtree_rc    qtree_insert(qtree *, void *, void *);
+    qtree_rc    qtree_insertnode(qtree *, qtree_node *);
     void        qtree_remove(qtree *, void *);
     void        qtree_removenode(qtree *, qtree_node *);
     qtree_node  *qtree_unlinknode(qtree *, qtree_node *);

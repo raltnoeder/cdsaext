@@ -7,14 +7,15 @@ extern "C" {
 
 #include <unistd.h>
 #include <sys/types.h>
+#include <stdint.h>
 
-#define BSEARCH_NPOS ((size_t) ~0)
+    extern const size_t BSEARCH_NPOS;
 
     size_t gbsearch(void **, size_t, void *, int (*)(void *, void *));
     size_t bsearch_ull(
-        unsigned long long *,
+        uint64_t *,
         size_t,
-        unsigned long long
+        uint64_t
     );
 
 #ifdef	__cplusplus
