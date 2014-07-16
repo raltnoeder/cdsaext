@@ -49,14 +49,14 @@ extern "C" {
     qtree       *qtree_alloc(int (*)(void *, void *));
     void        qtree_init(qtree *, int (*)(void *, void *));
     qtree_rc    qtree_insert(qtree *, void *, void *);
-    qtree_rc    qtree_insertnode(qtree *, qtree_node *);
+    qtree_rc    qtree_insert_node(qtree *, qtree_node *);
     void        qtree_remove(qtree *, void *);
-    void        qtree_removenode(qtree *, qtree_node *);
-    qtree_node  *qtree_unlinknode(qtree *, qtree_node *);
+    void        qtree_remove_node(qtree *, qtree_node *);
+    qtree_node  *qtree_unlink_node(qtree *, qtree_node *);
     void        *qtree_get(qtree *, void *);
-    qtree_node  *qtree_getnode(qtree *, void *);
+    qtree_node  *qtree_get_node(qtree *, void *);
     qtree_it    *qtree_iterator(qtree *);
-    void        qtree_iteratorinit(qtree *, qtree_it *);
+    void        qtree_iterator_init(qtree *, qtree_it *);
     qtree_node  *qtree_next(qtree_it *);
     size_t      qtree_get_size(qtree *);
 

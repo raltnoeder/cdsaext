@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall -O2 -I .
+CFLAGS=-Wall -std=c99 -O2 -I .
 
 all: qtree.o vmap.o bsearch.o
 

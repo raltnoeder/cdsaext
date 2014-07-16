@@ -46,19 +46,19 @@ extern "C" {
     void       vmap_init(vmap *, int (*)(void *, void *));
     void       vmap_dealloc(vmap *);
     void       vmap_clear(vmap *);
-    vmap_rc    vmap_insertbeforenode(vmap *, vmap_node *, void *, void *);
-    void       vmap_insertnodebeforenode(vmap *, vmap_node *, vmap_node *);
-    void       vmap_prependnode(vmap *, vmap_node *);
+    vmap_rc    vmap_insert_before(vmap *, vmap_node *, void *, void *);
+    void       vmap_insert_node_before(vmap *, vmap_node *, vmap_node *);
+    void       vmap_prepend_node(vmap *, vmap_node *);
     vmap_rc    vmap_prepend(vmap *, void *, void *);
-    void       vmap_appendnode(vmap *, vmap_node *);
+    void       vmap_append_node(vmap *, vmap_node *);
     vmap_rc    vmap_append(vmap *, void *, void *);
     void       vmap_remove(vmap *, void *);
-    void       vmap_removenode(vmap *, vmap_node *);
-    void       vmap_unlinknode(vmap *, vmap_node *);
+    void       vmap_remove_node(vmap *, vmap_node *);
+    void       vmap_unlink_node(vmap *, vmap_node *);
     void       *vmap_get(vmap *, void *);
-    vmap_node  *vmap_getnode(vmap *, void *);
+    vmap_node  *vmap_get_node(vmap *, void *);
     vmap_it    *vmap_iterator(vmap *);
-    void       vmap_iteratorinit(vmap *, vmap_it *);
+    void       vmap_iterator_init(vmap *, vmap_it *);
     vmap_node  *vmap_next(vmap_it *);
 
 #ifdef	__cplusplus
