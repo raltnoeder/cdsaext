@@ -1,7 +1,7 @@
 /**
  * Binary search in a sorted array
  *
- * @version 2014-07-14_001
+ * @version 2014-09-17_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -33,73 +33,71 @@
 
 const size_t BSEARCH_NPOS = ((size_t) ~0);
 
+
 size_t gbsearch(
-    void   *arr[],
-    size_t arr_len,
-    void   *val,
-    int    (*comp_func)(void *, void *)
+    void              *array[],
+    size_t            array_length,
+    void              *value,
+    gbsearch_cmp_func compare_func
 )
 {
-    size_t sidx;
-    size_t eidx;
-    size_t midx;
+    size_t result      = BSEARCH_NPOS;
+    size_t start_index = 0;
+    size_t end_index   = array_length;
+
     size_t width;
-
-    sidx = 0;
-    eidx = arr_len;
-
-    while ((width = eidx - sidx ) > 0)
+    while ((width = end_index - start_index ) > 0)
     {
-        midx = sidx + (width / 2);
-        if (comp_func(arr[midx], val) == 0)
+        size_t mid_index = start_index + (width / 2);
+        if (compare_func(array[mid_index], value) == 0)
         {
-            return midx;
+            result = mid_index;
+            break;
         }
         else
-        if (comp_func(arr[midx], val) > 0)
+        if (compare_func(array[mid_index], value) > 0)
         {
-            eidx = midx;
+            end_index = mid_index;
         }
         else
         {
-            sidx = midx + 1;
+            start_index = mid_index + 1;
         }
     }
 
-    return BSEARCH_NPOS;
+    return result;
 }
 
+
 size_t bsearch_uint64(
-    uint64_t arr[],
-    size_t   arr_len,
-    uint64_t val
+    uint64_t array[],
+    size_t   array_length,
+    uint64_t value
 )
 {
-    size_t sidx;
-    size_t eidx;
-    size_t midx;
+    size_t result      = BSEARCH_NPOS;
+    size_t start_index = 0;
+    size_t end_index   = array_length;
+
     size_t width;
-
-    sidx = 0;
-    eidx = arr_len;
-
-    while ((width = eidx - sidx ) > 0)
+    while ((width = end_index - start_index ) > 0)
     {
-        midx = sidx + (width / 2);
-        if (arr[midx] == val)
+        size_t mid_index = start_index + (width / 2);
+        if (array[mid_index] == value)
         {
-            return midx;
+            result = mid_index;
+            break;
         }
         else
-        if (arr[midx] > val)
+        if (array[mid_index] > value)
         {
-            eidx = midx;
+            end_index = mid_index;
         }
         else
         {
-            sidx = midx + 1;
+            start_index = mid_index + 1;
         }
     }
 
-    return BSEARCH_NPOS;
+    return result;
 }

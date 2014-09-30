@@ -1,26 +1,25 @@
 #ifndef BSEARCH_H
 #define	BSEARCH_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdint.h>
 
-    extern const size_t BSEARCH_NPOS;
+extern const size_t BSEARCH_NPOS;
 
-    size_t gbsearch(void **, size_t, void *, int (*)(void *, void *));
-    size_t bsearch_ull(
-        uint64_t *,
-        size_t,
-        uint64_t
-    );
+typedef int (*gbsearch_cmp_func)(void *value_a, void *value_b);
 
-#ifdef	__cplusplus
-}
-#endif
+size_t gbsearch(
+    void              *array[],
+    size_t            array_length,
+    void              *value,
+    gbsearch_cmp_func compare_func
+);
+
+size_t bsearch_ull(
+    uint64_t *array[],
+    size_t   array_length,
+    uint64_t value
+);
 
 #endif	/* BSEARCH_H */
-

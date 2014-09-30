@@ -1,7 +1,7 @@
 /**
  * Vector map
  *
- * @version 2014-07-14_001
+ * @version 2014-10-29_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
@@ -31,20 +31,23 @@
  */
 #include "vmap.h"
 
-static inline vmap_node *vmap_impl_find_node(vmap *, void *);
-static inline void      vmap_impl_remove_node(vmap *, vmap_node *);
-static inline void      vmap_impl_unlink_node(vmap *, vmap_node *);
-static inline void      vmap_impl_prepend_node(vmap *, vmap_node *);
-static inline void      vmap_impl_append_node(vmap *, vmap_node *);
-static inline void      vmap_impl_insert_node_before(vmap *, vmap_node *, vmap_node *);
-static inline void      vmap_impl_init(vmap *, int (*)(void *, void *));
-static inline void      vmap_impl_clear(vmap *);
+static inline vmap_node *vmap_impl_find_node(vmap *vmap_obj, void *key);
+static inline void      vmap_impl_remove_node(vmap *vmap_obj, vmap_node *node);
+static inline void      vmap_impl_unlink_node(vmap *vmap_obj, vmap_node *node);
+static inline void      vmap_impl_prepend_node(vmap *vmap_obj, vmap_node *ins);
+static inline void      vmap_impl_append_node(vmap *vmap_obj, vmap_node *ins);
+static inline void      vmap_impl_insert_node_before(
+    vmap      *vmap_obj,
+    vmap_node *crt,
+    vmap_node *ins
+);
+static inline void      vmap_impl_init(vmap *vmap_obj, vmap_cmp_func cmp_func_ptr);
+static inline void      vmap_impl_clear(vmap *vmap_obj);
+
 
 vmap *vmap_alloc(vmap_cmp_func cmp_func_ptr)
 {
-    vmap *vmap_obj;
-
-    vmap_obj = malloc(sizeof(vmap));
+    vmap *vmap_obj = malloc(sizeof(vmap));
     if (vmap_obj != NULL)
     {
         vmap_impl_init(vmap_obj, cmp_func_ptr);
@@ -53,11 +56,13 @@ vmap *vmap_alloc(vmap_cmp_func cmp_func_ptr)
     return vmap_obj;
 }
 
+
 void vmap_dealloc(vmap *vmap_obj)
 {
     vmap_impl_clear(vmap_obj);
     free(vmap_obj);
 }
+
 
 void vmap_clear(vmap *vmap_obj)
 {
@@ -67,16 +72,20 @@ void vmap_clear(vmap *vmap_obj)
     vmap_obj->tail = NULL;
 }
 
+
 void vmap_init(vmap *vmap_obj, vmap_cmp_func cmp_func_ptr)
 {
     vmap_impl_init(vmap_obj, cmp_func_ptr);
 }
 
-vmap_rc vmap_prepend(vmap *vmap_obj, void *key, void *val)
-{
-    vmap_node *ins;
 
-    ins = malloc(sizeof(vmap_node));
+vmap_rc vmap_prepend(
+    vmap *vmap_obj,
+    void *key,
+    void *val
+)
+{
+    vmap_node *ins = malloc(sizeof(vmap_node));
     if (ins == NULL)
     {
         return VMAP_ERR_NOMEM;
@@ -89,17 +98,21 @@ vmap_rc vmap_prepend(vmap *vmap_obj, void *key, void *val)
 
     return VMAP_PASS;
 }
+
 
 void vmap_prepend_node(vmap *vmap_obj, vmap_node *ins)
 {
     vmap_impl_prepend_node(vmap_obj, ins);
 }
 
-vmap_rc vmap_append(vmap *vmap_obj, void *key, void *val)
-{
-    vmap_node *ins;
 
-    ins = malloc(sizeof(vmap_node));
+vmap_rc vmap_append(
+    vmap *vmap_obj,
+    void *key,
+    void *val
+)
+{
+    vmap_node *ins = malloc(sizeof(vmap_node));
     if (ins == NULL)
     {
         return VMAP_ERR_NOMEM;
@@ -112,17 +125,22 @@ vmap_rc vmap_append(vmap *vmap_obj, void *key, void *val)
 
     return VMAP_PASS;
 }
+
 
 void vmap_append_node(vmap *vmap_obj, vmap_node *ins)
 {
     vmap_impl_append_node(vmap_obj, ins);
 }
 
-vmap_rc vmap_insert_before(vmap *vmap_obj, vmap_node *crt, void *key, void *val)
-{
-    vmap_node *ins;
 
-    ins = malloc(sizeof(vmap_node));
+vmap_rc vmap_insert_before(
+    vmap      *vmap_obj,
+    vmap_node *crt,
+    void      *key,
+    void      *val
+)
+{
+    vmap_node *ins = malloc(sizeof(vmap_node));
     if (ins == NULL)
     {
         return VMAP_ERR_NOMEM;
@@ -131,58 +149,66 @@ vmap_rc vmap_insert_before(vmap *vmap_obj, vmap_node *crt, void *key, void *val)
     ins->key = key;
     ins->val = val;
 
+    vmap_impl_insert_node_before(vmap_obj, crt, ins);
+
     return VMAP_PASS;
 }
 
-void vmap_insert_node_before(vmap *vmap_obj, vmap_node *crt, vmap_node *ins)
+
+void vmap_insert_node_before(
+    vmap      *vmap_obj,
+    vmap_node *crt,
+    vmap_node *ins
+)
 {
     vmap_impl_insert_node_before(vmap_obj, crt, ins);
 }
 
+
 void vmap_remove(vmap *vmap_obj, void *key)
 {
-    vmap_node *node;
-
-    node = vmap_impl_find_node(vmap_obj, key);
+    vmap_node *node = vmap_impl_find_node(vmap_obj, key);
     if (node != NULL)
     {
         vmap_impl_remove_node(vmap_obj, node);
     }
 }
 
+
 void vmap_remove_node(vmap *vmap_obj, vmap_node *node)
 {
     vmap_impl_remove_node(vmap_obj, node);
 }
+
 
 void vmap_unlink_node(vmap *vmap_obj, vmap_node *node)
 {
     vmap_impl_unlink_node(vmap_obj, node);
 }
 
+
 void *vmap_get(vmap *vmap_obj, void *key)
 {
-    vmap_node *node;
-
-    node = vmap_impl_find_node(vmap_obj, key);
+    void      *val   = NULL;
+    vmap_node *node  = vmap_impl_find_node(vmap_obj, key);
     if (node != NULL)
     {
-        return node->val;
+        val = node->val;
     }
 
-    return NULL;
+    return val;
 }
+
 
 vmap_node *vmap_get_node(vmap *vmap_obj, void *key)
 {
     return vmap_impl_find_node(vmap_obj, key);
 }
 
+
 vmap_it *vmap_iterator(vmap *vmap_obj)
 {
-    vmap_it *it;
-
-    it = malloc(sizeof(vmap_it));
+    vmap_it *it = malloc(sizeof(vmap_it));
     if (it != NULL)
     {
         it->next = vmap_obj->head;
@@ -191,16 +217,16 @@ vmap_it *vmap_iterator(vmap *vmap_obj)
     return it;
 }
 
+
 void vmap_iterator_init(vmap *vmap_obj, vmap_it *it)
 {
     it->next = vmap_obj->head;
 }
 
+
 vmap_node *vmap_next(vmap_it *it)
 {
-    vmap_node *crt;
-
-    crt = it->next;
+    vmap_node *crt = it->next;
     if (crt != NULL)
     {
         it->next = crt->next;
@@ -209,10 +235,10 @@ vmap_node *vmap_next(vmap_it *it)
     return crt;
 }
 
-inline vmap_node *vmap_impl_find_node(vmap *vmap_obj, void *key)
+
+static inline vmap_node *vmap_impl_find_node(vmap *vmap_obj, void *key)
 {
     vmap_node *node;
-
     for (node = vmap_obj->head; node != NULL; node = node->next)
     {
         if (vmap_obj->vmap_cmp(node->key, key) == 0)
@@ -224,11 +250,13 @@ inline vmap_node *vmap_impl_find_node(vmap *vmap_obj, void *key)
     return node;
 }
 
+
 static inline void vmap_impl_remove_node(vmap *vmap_obj, vmap_node *node)
 {
     vmap_impl_unlink_node(vmap_obj, node);
     free(node);
 }
+
 
 static inline void vmap_impl_unlink_node(vmap *vmap_obj, vmap_node *node)
 {
@@ -251,12 +279,12 @@ static inline void vmap_impl_unlink_node(vmap *vmap_obj, vmap_node *node)
     --(vmap_obj->size);
 }
 
+
 static inline void vmap_impl_prepend_node(vmap *vmap_obj, vmap_node *ins)
 {
-    vmap_node *next;
+    vmap_node *next = vmap_obj->head;
 
     ins->prev = NULL;
-    next      = vmap_obj->head;
     ins->next = next;
     if (next != NULL)
     {
@@ -272,12 +300,12 @@ static inline void vmap_impl_prepend_node(vmap *vmap_obj, vmap_node *ins)
     ++(vmap_obj->size);
 }
 
+
 static inline void vmap_impl_append_node(vmap *vmap_obj, vmap_node *ins)
 {
-    vmap_node *prev;
+    vmap_node *prev = vmap_obj->tail;
 
     ins->next = NULL;
-    prev      = vmap_obj->tail;
     ins->prev = prev;
     if (prev != NULL)
     {
@@ -292,7 +320,12 @@ static inline void vmap_impl_append_node(vmap *vmap_obj, vmap_node *ins)
     ++(vmap_obj->size);
 }
 
-static inline void vmap_impl_insert_node_before(vmap *vmap_obj, vmap_node *crt, vmap_node *ins)
+
+static inline void vmap_impl_insert_node_before(
+    vmap      *vmap_obj,
+    vmap_node *crt,
+    vmap_node *ins
+)
 {
     ins->prev = crt->prev;
     ins->next = crt;
@@ -309,6 +342,7 @@ static inline void vmap_impl_insert_node_before(vmap *vmap_obj, vmap_node *crt, 
     ++(vmap_obj->size);
 }
 
+
 static inline void vmap_impl_init(vmap *vmap_obj, vmap_cmp_func cmp_func_ptr)
 {
     vmap_obj->head     = NULL;
@@ -317,14 +351,14 @@ static inline void vmap_impl_init(vmap *vmap_obj, vmap_cmp_func cmp_func_ptr)
     vmap_obj->vmap_cmp = cmp_func_ptr;
 }
 
+
 static inline void vmap_impl_clear(vmap *vmap_obj)
 {
-    vmap_node *node;
     vmap_node *next;
 
     /* The "node = next" assignment executes after the
      * "next = node->next" assignment inside the "for" block */
-    for (node = vmap_obj->head; node != NULL; node = next)
+    for (vmap_node *node = vmap_obj->head; node != NULL; node = next)
     {
         next = node->next;
         free(node);
