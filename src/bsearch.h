@@ -16,8 +16,8 @@ size_t gbsearch(
     gbsearch_cmp_func compare_func
 );
 
-size_t bsearch_ull(
-    uint64_t *array[],
+size_t bsearch_uint64(
+    uint64_t array[],
     size_t   array_length,
     uint64_t value
 );

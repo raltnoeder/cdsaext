@@ -1,7 +1,7 @@
 /**
  * Binary search in a sorted array
  *
- * @version 2014-09-17_001
+ * @version 2014-10-01_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2014 Robert ALTNOEDER
