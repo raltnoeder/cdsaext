@@ -1,10 +1,10 @@
 /**
  * Quick balanced binary search tree
  *
- * @version 2014-10-29_001
+ * @version 2015-07-30_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
- * Copyright (C) 2012, 2014 Robert ALTNOEDER
+ * Copyright (C) 2012, 2015 Robert ALTNOEDER
  *
  * Redistribution and use in source and binary forms,
  * with or without modification, are permitted provided that
@@ -31,6 +31,14 @@
  */
 #include "qtree.h"
 
+typedef enum
+{
+    QTREE_DIR_LESS    = 0,
+    QTREE_DIR_GREATER = 1
+}
+qtree_dir;
+
+
 static inline qtree_node *qtree_impl_find_node(qtree *qtree_obj, void *key);
 static inline qtree_rc   qtree_impl_insert_node(qtree *qtree_obj, qtree_node *ins_node);
 static inline void       qtree_impl_remove_node(qtree *qtree_obj, qtree_node *rm_node);
@@ -42,7 +50,7 @@ static inline void       qtree_impl_rebalance_insert(
 );
 static inline void       qtree_impl_rebalance_remove(
     qtree      *qtree_obj,
-    int        dir,
+    qtree_dir  dir,
     qtree_node *rot_node
 );
 static inline void       qtree_impl_init(qtree *qtree_obj, qtree_cmp_func cmp_func_ptr);
@@ -52,7 +60,7 @@ static inline void       qtree_impl_clear(qtree *qtree_obj);
 
 qtree *qtree_alloc(qtree_cmp_func cmp_func_ptr)
 {
-    qtree *qtree_obj = malloc(sizeof(qtree));
+    qtree *qtree_obj = malloc(sizeof (qtree));
     if (qtree_obj != NULL)
     {
         qtree_impl_init(qtree_obj, cmp_func_ptr);
@@ -87,7 +95,7 @@ qtree_rc qtree_insert(qtree *qtree_obj, void *key, void *val)
 {
     qtree_rc rc = QTREE_ERR_NOMEM;
 
-    qtree_node *node = malloc(sizeof(qtree_node));
+    qtree_node *node = malloc(sizeof (qtree_node));
     if (node != NULL)
     {
         node->key = key;
@@ -159,7 +167,7 @@ size_t qtree_get_size(qtree *qtree_obj)
 
 qtree_it *qtree_iterator(qtree *qtree_obj)
 {
-    qtree_it *iter = malloc(sizeof(qtree_it));
+    qtree_it *iter = malloc(sizeof (qtree_it));
     if (iter != NULL)
     {
         qtree_impl_iterator_init(qtree_obj, iter);
@@ -188,7 +196,7 @@ qtree_node *qtree_next(qtree_it *iter)
                  next_node->less != NULL;
                  next_node = next_node->less)
             {
-                /* intentional no-op block */
+                // intentional no-op block
             }
         }
         else
@@ -221,23 +229,25 @@ qtree_node *qtree_next(qtree_it *iter)
  *          is critical for the function's correct operation.
  *          DO NOT CHANGE THE ORDER OF ANY STATEMENTS.
  */
-static inline void qtree_impl_rebalance_remove(qtree *qtree_obj, int dir, qtree_node *rot_node)
+static inline void qtree_impl_rebalance_remove(qtree *qtree_obj, qtree_dir dir, qtree_node *rot_node)
 {
-    /* update balance and perform rotations */
+    // update balance and perform rotations
     for (; rot_node != NULL; rot_node = rot_node->parent)
     {
-        if (dir < 0)
+        if (dir == QTREE_DIR_LESS)
         {
-            /* node was removed from left subtree */
-            if (++(rot_node->balance) == 1)
+            // node was removed from left subtree
+            ++rot_node->balance;
+            if (rot_node->balance == 1)
             {
                 break;
             }
         }
         else
         {
-            /* node was removed from right subtree */
-            if (--(rot_node->balance) == -1)
+            // node was removed from right subtree
+            --rot_node->balance;
+            if (rot_node->balance == -1)
             {
                 break;
             }
@@ -247,22 +257,22 @@ static inline void qtree_impl_rebalance_remove(qtree *qtree_obj, int dir, qtree_
         {
             if (rot_node->parent->less == rot_node)
             {
-                dir = -1;
+                dir = QTREE_DIR_LESS;
             }
             else
             {
-                dir = 1;
+                dir = QTREE_DIR_GREATER;
             }
         }
 
-        /* update balance and perform rotations */
+        // update balance and perform rotations
         if (rot_node->balance == -2)
         {
             qtree_node *sub_node = rot_node->less;
-            /* 0 or -1 */
+            // 0 or -1
             if (sub_node->balance <= 0)
             {
-                /* rotate R */
+                // rotate R
                 sub_node->parent = rot_node->parent;
                 if (rot_node->parent != NULL)
                 {
@@ -303,7 +313,7 @@ static inline void qtree_impl_rebalance_remove(qtree *qtree_obj, int dir, qtree_
             }
             else
             {
-                /* rotate LR */
+                // rotate LR
                 if (sub_node->greater->balance == -1)
                 {
                     sub_node->balance = 0;
@@ -356,16 +366,16 @@ static inline void qtree_impl_rebalance_remove(qtree *qtree_obj, int dir, qtree_
                 sub_node->parent->greater = rot_node;
             }
             rot_node = rot_node->parent;
-            /* end of R / LR rotations */
+            // end of R / LR rotations
         }
         else
         if (rot_node->balance == 2)
         {
             qtree_node *sub_node = rot_node->greater;
-            /* 0 or 1 */
+            // 0 or 1
             if (sub_node->balance >= 0)
             {
-                /* rotate L */
+                // rotate L
                 sub_node->parent = rot_node->parent;
                 if (rot_node->parent != NULL)
                 {
@@ -405,7 +415,7 @@ static inline void qtree_impl_rebalance_remove(qtree *qtree_obj, int dir, qtree_
             }
             else
             {
-                /* rotate RL */
+                // rotate RL
                 if (sub_node->less->balance == -1)
                 {
                     sub_node->balance = 1;
@@ -458,9 +468,9 @@ static inline void qtree_impl_rebalance_remove(qtree *qtree_obj, int dir, qtree_
                 sub_node->parent->less = rot_node;
             }
             rot_node = rot_node->parent;
-            /* end of L / RL rotations */
+            // end of L / RL rotations
         }
-    } /* end update */
+    }
 }
 
 
@@ -477,7 +487,7 @@ static inline void qtree_impl_rebalance_insert(
     qtree_node *rot_node
 )
 {
-    /* update balance and perform rotations */
+    // update balance and perform rotations
     do
     {
         if (rot_node->less == sub_node)
@@ -498,7 +508,7 @@ static inline void qtree_impl_rebalance_insert(
         {
             if (sub_node->balance == -1)
             {
-                /* rotate R */
+                // rotate R
                 rot_node->balance = 0;
                 sub_node->balance = 0;
 
@@ -530,7 +540,7 @@ static inline void qtree_impl_rebalance_insert(
             }
             else
             {
-                /* rotate LR */
+                // rotate LR
                 if (sub_node->greater->balance == -1)
                 {
                     sub_node->balance = 0;
@@ -589,7 +599,7 @@ static inline void qtree_impl_rebalance_insert(
         {
             if (sub_node->balance == 1)
             {
-                /* rotate L */
+                // rotate L
                 rot_node->balance = 0;
                 sub_node->balance = 0;
 
@@ -621,7 +631,7 @@ static inline void qtree_impl_rebalance_insert(
             }
             else
             {
-                /* rotate RL */
+                // rotate RL
                 if (sub_node->less->balance == -1)
                 {
                     sub_node->balance = 1;
@@ -760,34 +770,34 @@ static inline qtree_node *qtree_impl_unlink_node(qtree *qtree_obj, qtree_node *r
     qtree_node *rep_node;
     if (rm_node->less == NULL && rm_node->greater == NULL)
     {
-        /* leaf node - removal without replacement */
+        // leaf node - removal without replacement
         rep_node = rm_node;
         if (qtree_obj->root == rm_node)
         {
-            /* root node leaf */
+            // root node leaf
             qtree_obj->root = NULL;
         }
         else
         {
-            /* non-root node leaf */
+            // non-root node leaf
             qtree_node *rot_node = rep_node->parent;
-            int        dir;
+            qtree_dir  dir;
             if (rot_node->less == rep_node)
             {
-                /* node to remove is in the left subtree *
-                 * of its parent                         */
+                // node to remove is in the left subtree
+                // of its parent
 
-                /* save direction */
-                dir = -1;
+                // save direction
+                dir = QTREE_DIR_LESS;
                 rot_node->less = NULL;
             }
             else
             {
-                /* node to remove is in the right subtree *
-                 * of its parent                          */
+                // node to remove is in the right subtree
+                // of its parent
 
-                /* save direction */
-                dir = 1;
+                // save direction
+                dir = QTREE_DIR_GREATER;
                 rot_node->greater = NULL;
             }
             qtree_impl_rebalance_remove(qtree_obj, dir, rot_node);
@@ -795,16 +805,16 @@ static inline qtree_node *qtree_impl_unlink_node(qtree *qtree_obj, qtree_node *r
     }
     else
     {
-        /* not a leaf node, removal by replacement                       *
-         * at least one child, or a child and a subtree, or two subtrees *
-         * find replacement node                                         */
+        // not a leaf node, removal by replacement
+        // at least one child, or a child and a subtree, or two subtrees
+        // find replacement node
         if (rm_node->balance == -1)
         {
             for (rep_node = rm_node->less;
                  rep_node->greater != NULL;
                  rep_node = rep_node->greater)
             {
-                /* intentional no-op block */
+                // intentional no-op block
             }
         }
         else
@@ -813,67 +823,67 @@ static inline qtree_node *qtree_impl_unlink_node(qtree *qtree_obj, qtree_node *r
                  rep_node->less != NULL;
                  rep_node = rep_node->less)
             {
-                /* intentional no-op block */
+                // intentional no-op block
             }
         }
         qtree_node *rot_node = rep_node->parent;
-        int        dir;
+        qtree_dir  dir;
         if (rot_node->less == rep_node)
         {
-            /* node to remove is in the left subtree *
-             * of its parent                         */
+            // node to remove is in the left subtree
+            // of its parent
 
-            /* save direction */
-            dir = -1;
+            // save direction
+            dir = QTREE_DIR_LESS;
 
             if (rep_node->less != NULL)
             {
-                /* replace node by its left child */
+                // replace node by its left child
                 rot_node->less         = rep_node->less;
                 rep_node->less->parent = rot_node;
             }
             else
             if (rep_node->greater != NULL)
             {
-                /* replace node by its right child */
+                // replace node by its right child
                 rot_node->less            = rep_node->greater;
                 rep_node->greater->parent = rot_node;
             }
             else
             {
-                /* non-root leaf node */
+                // non-root leaf node
                 rot_node->less = NULL;
             }
         }
         else
         {
-            /* node to remove is in the right subtree *
-             * of its parent                          */
+            // node to remove is in the right subtree
+            // of its parent
 
-            /* save direction */
-            dir = 1;
+            // save direction
+            dir = QTREE_DIR_GREATER;
 
             if (rep_node->less != NULL)
             {
-                /* replace node by its left child */
+                // replace node by its left child
                 rot_node->greater      = rep_node->less;
                 rep_node->less->parent = rot_node;
             }
             else
             if (rep_node->greater != NULL)
             {
-                /* replace node by its right child */
+                // replace node by its right child
                 rot_node->greater         = rep_node->greater;
                 rep_node->greater->parent = rot_node;
             }
             else
             {
-                /* non-root leaf node */
+                // non-root leaf node
                 rot_node->greater = NULL;
             }
         }
 
-        /* replace node contents */
+        // replace node contents
         rm_node->key = rep_node->key;
         rm_node->val = rep_node->val;
 
@@ -925,7 +935,7 @@ static inline void qtree_impl_iterator_init(qtree *qtree_obj, qtree_it *iter)
              iter->next->less != NULL;
              iter->next = iter->next->less)
         {
-            /* intentional no-op block */
+            // intentional no-op block
         }
     }
     else

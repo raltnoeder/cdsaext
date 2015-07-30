@@ -1,10 +1,10 @@
 /**
  * Vector map
  *
- * @version 2014-10-29_001
+ * @version 2015-07-30_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
- * Copyright (C) 2012, 2014 Robert ALTNOEDER
+ * Copyright (C) 2012, 2015 Robert ALTNOEDER
  *
  * Redistribution and use in source and binary forms,
  * with or without modification, are permitted provided that
@@ -47,7 +47,7 @@ static inline void      vmap_impl_clear(vmap *vmap_obj);
 
 vmap *vmap_alloc(vmap_cmp_func cmp_func_ptr)
 {
-    vmap *vmap_obj = malloc(sizeof(vmap));
+    vmap *vmap_obj = malloc(sizeof (vmap));
     if (vmap_obj != NULL)
     {
         vmap_impl_init(vmap_obj, cmp_func_ptr);
@@ -85,7 +85,7 @@ vmap_rc vmap_prepend(
     void *val
 )
 {
-    vmap_node *ins = malloc(sizeof(vmap_node));
+    vmap_node *ins = malloc(sizeof (vmap_node));
     if (ins == NULL)
     {
         return VMAP_ERR_NOMEM;
@@ -112,7 +112,7 @@ vmap_rc vmap_append(
     void *val
 )
 {
-    vmap_node *ins = malloc(sizeof(vmap_node));
+    vmap_node *ins = malloc(sizeof (vmap_node));
     if (ins == NULL)
     {
         return VMAP_ERR_NOMEM;
@@ -140,7 +140,7 @@ vmap_rc vmap_insert_before(
     void      *val
 )
 {
-    vmap_node *ins = malloc(sizeof(vmap_node));
+    vmap_node *ins = malloc(sizeof (vmap_node));
     if (ins == NULL)
     {
         return VMAP_ERR_NOMEM;
@@ -208,7 +208,7 @@ vmap_node *vmap_get_node(vmap *vmap_obj, void *key)
 
 vmap_it *vmap_iterator(vmap *vmap_obj)
 {
-    vmap_it *it = malloc(sizeof(vmap_it));
+    vmap_it *it = malloc(sizeof (vmap_it));
     if (it != NULL)
     {
         it->next = vmap_obj->head;
@@ -354,10 +354,9 @@ static inline void vmap_impl_init(vmap *vmap_obj, vmap_cmp_func cmp_func_ptr)
 
 static inline void vmap_impl_clear(vmap *vmap_obj)
 {
+    // The "node = next" assignment executes after
+    // "next = node->next" assignment inside the "for" block
     vmap_node *next;
-
-    /* The "node = next" assignment executes after the
-     * "next = node->next" assignment inside the "for" block */
     for (vmap_node *node = vmap_obj->head; node != NULL; node = next)
     {
         next = node->next;

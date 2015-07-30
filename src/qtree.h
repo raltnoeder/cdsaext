@@ -62,3 +62,4 @@ qtree_node  *qtree_next(qtree_it *iter);
 size_t      qtree_get_size(qtree *qtree_obj);
 
 #endif	/* QTREE_H */
+
