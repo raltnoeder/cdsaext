@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 typedef enum
 {

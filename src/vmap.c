@@ -85,18 +85,22 @@ vmap_rc vmap_prepend(
     void *val
 )
 {
+    vmap_rc rc = VMAP_PASS;
+
     vmap_node *ins = malloc(sizeof (vmap_node));
-    if (ins == NULL)
+    if (ins != NULL)
     {
-        return VMAP_ERR_NOMEM;
+        ins->key = key;
+        ins->val = val;
+
+        vmap_impl_prepend_node(vmap_obj, ins);
+    }
+    else
+    {
+        rc = VMAP_ERR_NOMEM;
     }
 
-    ins->key = key;
-    ins->val = val;
-
-    vmap_impl_prepend_node(vmap_obj, ins);
-
-    return VMAP_PASS;
+    return rc;
 }
 
 
@@ -112,18 +116,22 @@ vmap_rc vmap_append(
     void *val
 )
 {
+    vmap_rc rc = VMAP_PASS;
+
     vmap_node *ins = malloc(sizeof (vmap_node));
-    if (ins == NULL)
+    if (ins != NULL)
     {
-        return VMAP_ERR_NOMEM;
+        ins->key = key;
+        ins->val = val;
+
+        vmap_impl_append_node(vmap_obj, ins);
+    }
+    else
+    {
+        rc = VMAP_ERR_NOMEM;
     }
 
-    ins->key = key;
-    ins->val = val;
-
-    vmap_impl_append_node(vmap_obj, ins);
-
-    return VMAP_PASS;
+    return rc;
 }
 
 
@@ -140,18 +148,22 @@ vmap_rc vmap_insert_before(
     void      *val
 )
 {
+    vmap_rc rc = VMAP_PASS;
+
     vmap_node *ins = malloc(sizeof (vmap_node));
-    if (ins == NULL)
+    if (ins != NULL)
     {
-        return VMAP_ERR_NOMEM;
+        ins->key = key;
+        ins->val = val;
+
+        vmap_impl_insert_node_before(vmap_obj, crt, ins);
+    }
+    else
+    {
+        rc = VMAP_ERR_NOMEM;
     }
 
-    ins->key = key;
-    ins->val = val;
-
-    vmap_impl_insert_node_before(vmap_obj, crt, ins);
-
-    return VMAP_PASS;
+    return rc;
 }
 
 
@@ -238,13 +250,14 @@ vmap_node *vmap_next(vmap_it *it)
 
 static inline vmap_node *vmap_impl_find_node(vmap *vmap_obj, void *key)
 {
-    vmap_node *node;
-    for (node = vmap_obj->head; node != NULL; node = node->next)
+    vmap_node *node = vmap_obj->head;
+    while (node != NULL)
     {
         if (vmap_obj->vmap_cmp(node->key, key) == 0)
         {
             break;
         }
+        node = node->next;
     }
 
     return node;
@@ -354,12 +367,11 @@ static inline void vmap_impl_init(vmap *vmap_obj, vmap_cmp_func cmp_func_ptr)
 
 static inline void vmap_impl_clear(vmap *vmap_obj)
 {
-    // The "node = next" assignment executes after
-    // "next = node->next" assignment inside the "for" block
-    vmap_node *next;
-    for (vmap_node *node = vmap_obj->head; node != NULL; node = next)
+    vmap_node *node = vmap_obj->head;
+    while (node != NULL)
     {
-        next = node->next;
+        vmap_node *next = node->next;
         free(node);
+        node = next;
     }
 }

@@ -1,7 +1,7 @@
 /**
  * Quick balanced binary search tree
  *
- * @version 2015-07-30_001
+ * @version 2015-10-03_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
  * Copyright (C) 2012, 2015 Robert ALTNOEDER
@@ -232,7 +232,7 @@ qtree_node *qtree_next(qtree_it *iter)
 static inline void qtree_impl_rebalance_remove(qtree *qtree_obj, qtree_dir dir, qtree_node *rot_node)
 {
     // update balance and perform rotations
-    for (; rot_node != NULL; rot_node = rot_node->parent)
+    while (rot_node != NULL)
     {
         if (dir == QTREE_DIR_LESS)
         {
@@ -470,6 +470,7 @@ static inline void qtree_impl_rebalance_remove(qtree *qtree_obj, qtree_dir dir, 
             rot_node = rot_node->parent;
             // end of L / RL rotations
         }
+        rot_node = rot_node->parent;
     }
 }
 
@@ -695,6 +696,8 @@ static inline void qtree_impl_rebalance_insert(
 
 static inline qtree_rc qtree_impl_insert_node(qtree *qtree_obj, qtree_node *ins_node)
 {
+    qtree_rc rc = QTREE_PASS;
+
     if (qtree_obj->root == NULL)
     {
         qtree_obj->root   = ins_node;
@@ -707,7 +710,7 @@ static inline qtree_rc qtree_impl_insert_node(qtree *qtree_obj, qtree_node *ins_
     else
     {
         qtree_node *parent_node = qtree_obj->root;
-        for (;;)
+        while (true)
         {
             int cmp_rc = qtree_obj->qtree_cmp(ins_node->key, parent_node->key);
             if (cmp_rc < 0)
@@ -720,6 +723,7 @@ static inline qtree_rc qtree_impl_insert_node(qtree *qtree_obj, qtree_node *ins_
                     ins_node->greater = NULL;
                     ins_node->balance = 0;
                     ++(qtree_obj->size);
+                    qtree_impl_rebalance_insert(qtree_obj, ins_node, parent_node);
                     break;
                 }
                 else
@@ -738,6 +742,7 @@ static inline qtree_rc qtree_impl_insert_node(qtree *qtree_obj, qtree_node *ins_
                     ins_node->greater    = NULL;
                     ins_node->balance    = 0;
                     ++(qtree_obj->size);
+                    qtree_impl_rebalance_insert(qtree_obj, ins_node, parent_node);
                     break;
                 }
                 else
@@ -747,13 +752,13 @@ static inline qtree_rc qtree_impl_insert_node(qtree *qtree_obj, qtree_node *ins_
             }
             else
             {
-                return QTREE_ERR_EXISTS;
+                rc = QTREE_ERR_EXISTS;
+                break;
             }
         }
-        qtree_impl_rebalance_insert(qtree_obj, ins_node, parent_node);
     }
 
-    return QTREE_PASS;
+    return rc;
 }
 
 

@@ -46,7 +46,7 @@ size_t gbsearch(
     size_t end_index   = array_length;
 
     size_t width;
-    while ((width = end_index - start_index ) > 0)
+    while ((width = end_index - start_index) > 0)
     {
         size_t mid_index = start_index + (width / 2);
         if (compare_func(array[mid_index], value) == 0)
@@ -80,7 +80,7 @@ size_t bsearch_uint64(
     size_t end_index   = array_length;
 
     size_t width;
-    while ((width = end_index - start_index ) > 0)
+    while ((width = end_index - start_index) > 0)
     {
         size_t mid_index = start_index + (width / 2);
         if (array[mid_index] == value)
