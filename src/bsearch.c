@@ -1,10 +1,10 @@
 /**
  * Binary search in a sorted array
  *
- * @version 2014-10-01_001
+ * @version 2016-03-13_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
- * Copyright (C) 2012, 2014 Robert ALTNOEDER
+ * Copyright (C) 2012 - 2016 Robert ALTNOEDER
  *
  * Redistribution and use in source and binary forms,
  * with or without modification, are permitted provided that
@@ -45,24 +45,26 @@ size_t gbsearch(
     size_t start_index = 0;
     size_t end_index   = array_length;
 
-    size_t width;
-    while ((width = end_index - start_index) > 0)
+    size_t width = array_length;
+    while (width > 0)
     {
         size_t mid_index = start_index + (width / 2);
-        if (compare_func(array[mid_index], value) == 0)
+        int direction = compare_func(array[mid_index], value);
+        if (direction < 0)
         {
-            result = mid_index;
-            break;
+            start_index = mid_index + 1;
         }
         else
-        if (compare_func(array[mid_index], value) > 0)
+        if (direction > 0)
         {
             end_index = mid_index;
         }
         else
         {
-            start_index = mid_index + 1;
+            result = mid_index;
+            break;
         }
+        width = end_index - start_index;
     }
 
     return result;
@@ -79,14 +81,13 @@ size_t bsearch_uint64(
     size_t start_index = 0;
     size_t end_index   = array_length;
 
-    size_t width;
-    while ((width = end_index - start_index) > 0)
+    size_t width = array_length;
+    while (width > 0)
     {
         size_t mid_index = start_index + (width / 2);
-        if (array[mid_index] == value)
+        if (array[mid_index] < value)
         {
-            result = mid_index;
-            break;
+            start_index = mid_index + 1;
         }
         else
         if (array[mid_index] > value)
@@ -95,8 +96,10 @@ size_t bsearch_uint64(
         }
         else
         {
-            start_index = mid_index + 1;
+            result = mid_index;
+            break;
         }
+        width = end_index - start_index;
     }
 
     return result;
