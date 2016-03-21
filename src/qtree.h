@@ -30,7 +30,7 @@ struct qtree_s
 struct qtree_node_s
 {
     void        *key;
-    void        *val;
+    void        *value;
     qtree_node  *less;
     qtree_node  *greater;
     qtree_node  *parent;
@@ -54,7 +54,7 @@ qtree_rc    qtree_insert(
 qtree_rc    qtree_insert_node(qtree *qtree_obj, qtree_node *node);
 void        qtree_remove(qtree *qtree_obj, void *key);
 void        qtree_remove_node(qtree *qtree_obj, qtree_node *node);
-qtree_node  *qtree_unlink_node(qtree *qtree_obj, qtree_node *node);
+void        qtree_unlink_node(qtree *qtree_obj, qtree_node *node);
 void        *qtree_get(qtree *qtree_obj, void *key);
 qtree_node  *qtree_get_node(qtree *qtree_obj, void *key);
 qtree_it    *qtree_iterator(qtree *qtree_obj);
