@@ -12,7 +12,7 @@ typedef enum
 }
 vmap_rc;
 
-typedef int (*vmap_cmp_func)(void *val_alpha, void *val_bravo);
+typedef int (*vmap_cmp_func)(const void *val_alpha, const void *val_bravo);
 
 typedef struct vmap_s      vmap;
 typedef struct vmap_node_s vmap_node;
@@ -30,8 +30,8 @@ struct vmap_node_s
 {
     vmap_node   *next;
     vmap_node   *prev;
-    void        *key;
-    void        *val;
+    const void  *key;
+    const void  *val;
 };
 
 struct vmap_it_s
@@ -44,10 +44,10 @@ void       vmap_init(vmap *vmap_obj, vmap_cmp_func cmp_func_ptr);
 void       vmap_dealloc(vmap *vmap_obj);
 void       vmap_clear(vmap *vmap_obj);
 vmap_rc    vmap_insert_before(
-    vmap      *vmap_obj,
-    vmap_node *node,
-    void      *key,
-    void      *value
+    vmap        *vmap_obj,
+    vmap_node   *node,
+    const void  *key,
+    const void  *value
 );
 void       vmap_insert_node_before(
     vmap      *vmap_obj,
@@ -56,23 +56,23 @@ void       vmap_insert_node_before(
 );
 void       vmap_prepend_node(vmap *vmap_obj, vmap_node *node);
 vmap_rc    vmap_prepend(
-    vmap *vmap_obj,
-    void *key,
-    void *value
+    vmap        *vmap_obj,
+    const void  *key,
+    const void  *value
 );
 void       vmap_append_node(vmap *vmap_obj, vmap_node *node);
 vmap_rc    vmap_append(
-    vmap *vmap_obj,
-    void *key,
-    void *value
+    vmap        *vmap_obj,
+    const void  *key,
+    const void  *value
 );
-void       vmap_remove(vmap *vmap_obj, void *key);
+void       vmap_remove(vmap *vmap_obj, const void *key);
 void       vmap_remove_node(vmap *vmap_obj, vmap_node *node);
 void       vmap_unlink_node(vmap *vmap_obj, vmap_node *node);
-void       *vmap_get(vmap *vmap_obj, void *key);
-vmap_node  *vmap_get_node(vmap *vmap_obj, void *key);
-vmap_it    *vmap_iterator(vmap *vmap_obj);
-void       vmap_iterator_init(vmap *vmap_obj, vmap_it *iter);
+void       *vmap_get(const vmap *vmap_obj, const void *key);
+vmap_node  *vmap_get_node(const vmap *vmap_obj, const void *key);
+vmap_it    *vmap_iterator(const vmap *vmap_obj);
+void       vmap_iterator_init(const vmap *vmap_obj, vmap_it *iter);
 vmap_node  *vmap_next(vmap_it *iter);
 
 #endif	/* VMAP_H */

@@ -1,10 +1,10 @@
 /**
  * Vector map
  *
- * @version 2015-07-30_001
+ * @version 2018-05-16_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
- * Copyright (C) 2012, 2015 Robert ALTNOEDER
+ * Copyright (C) 2012, 2018 Robert ALTNOEDER
  *
  * Redistribution and use in source and binary forms,
  * with or without modification, are permitted provided that
@@ -31,7 +31,7 @@
  */
 #include "vmap.h"
 
-static inline vmap_node *vmap_impl_find_node(vmap *vmap_obj, void *key);
+static inline vmap_node *vmap_impl_find_node(const vmap *vmap_obj, const void *key);
 static inline void      vmap_impl_remove_node(vmap *vmap_obj, vmap_node *node);
 static inline void      vmap_impl_unlink_node(vmap *vmap_obj, vmap_node *node);
 static inline void      vmap_impl_prepend_node(vmap *vmap_obj, vmap_node *ins);
@@ -41,11 +41,11 @@ static inline void      vmap_impl_insert_node_before(
     vmap_node *crt,
     vmap_node *ins
 );
-static inline void      vmap_impl_init(vmap *vmap_obj, vmap_cmp_func cmp_func_ptr);
+static inline void      vmap_impl_init(vmap *vmap_obj, const vmap_cmp_func cmp_func_ptr);
 static inline void      vmap_impl_clear(vmap *vmap_obj);
 
 
-vmap *vmap_alloc(vmap_cmp_func cmp_func_ptr)
+vmap *vmap_alloc(const vmap_cmp_func cmp_func_ptr)
 {
     vmap *vmap_obj = malloc(sizeof (vmap));
     if (vmap_obj != NULL)
@@ -73,16 +73,16 @@ void vmap_clear(vmap *vmap_obj)
 }
 
 
-void vmap_init(vmap *vmap_obj, vmap_cmp_func cmp_func_ptr)
+void vmap_init(vmap *vmap_obj, const vmap_cmp_func cmp_func_ptr)
 {
     vmap_impl_init(vmap_obj, cmp_func_ptr);
 }
 
 
 vmap_rc vmap_prepend(
-    vmap *vmap_obj,
-    void *key,
-    void *val
+    vmap        *vmap_obj,
+    const void  *key,
+    const void  *val
 )
 {
     vmap_rc rc = VMAP_PASS;
@@ -111,9 +111,9 @@ void vmap_prepend_node(vmap *vmap_obj, vmap_node *ins)
 
 
 vmap_rc vmap_append(
-    vmap *vmap_obj,
-    void *key,
-    void *val
+    vmap        *vmap_obj,
+    const void  *key,
+    const void  *val
 )
 {
     vmap_rc rc = VMAP_PASS;
@@ -142,10 +142,10 @@ void vmap_append_node(vmap *vmap_obj, vmap_node *ins)
 
 
 vmap_rc vmap_insert_before(
-    vmap      *vmap_obj,
-    vmap_node *crt,
-    void      *key,
-    void      *val
+    vmap        *vmap_obj,
+    vmap_node   *crt,
+    const void  *key,
+    const void  *val
 )
 {
     vmap_rc rc = VMAP_PASS;
@@ -177,7 +177,7 @@ void vmap_insert_node_before(
 }
 
 
-void vmap_remove(vmap *vmap_obj, void *key)
+void vmap_remove(vmap *vmap_obj, const void *key)
 {
     vmap_node *node = vmap_impl_find_node(vmap_obj, key);
     if (node != NULL)
@@ -199,26 +199,26 @@ void vmap_unlink_node(vmap *vmap_obj, vmap_node *node)
 }
 
 
-void *vmap_get(vmap *vmap_obj, void *key)
+void *vmap_get(const vmap *vmap_obj, const void *key)
 {
-    void      *val   = NULL;
+    const void *value = NULL;
     vmap_node *node  = vmap_impl_find_node(vmap_obj, key);
     if (node != NULL)
     {
-        val = node->val;
+        value = node->val;
     }
 
-    return val;
+    return (void *) value;
 }
 
 
-vmap_node *vmap_get_node(vmap *vmap_obj, void *key)
+vmap_node *vmap_get_node(const vmap *vmap_obj, const void *key)
 {
     return vmap_impl_find_node(vmap_obj, key);
 }
 
 
-vmap_it *vmap_iterator(vmap *vmap_obj)
+vmap_it *vmap_iterator(const vmap *vmap_obj)
 {
     vmap_it *it = malloc(sizeof (vmap_it));
     if (it != NULL)
@@ -230,7 +230,7 @@ vmap_it *vmap_iterator(vmap *vmap_obj)
 }
 
 
-void vmap_iterator_init(vmap *vmap_obj, vmap_it *it)
+void vmap_iterator_init(const vmap *vmap_obj, vmap_it *it)
 {
     it->next = vmap_obj->head;
 }
@@ -248,7 +248,7 @@ vmap_node *vmap_next(vmap_it *it)
 }
 
 
-static inline vmap_node *vmap_impl_find_node(vmap *vmap_obj, void *key)
+static inline vmap_node *vmap_impl_find_node(const vmap *vmap_obj, const void *key)
 {
     vmap_node *node = vmap_obj->head;
     while (node != NULL)
@@ -356,7 +356,7 @@ static inline void vmap_impl_insert_node_before(
 }
 
 
-static inline void vmap_impl_init(vmap *vmap_obj, vmap_cmp_func cmp_func_ptr)
+static inline void vmap_impl_init(vmap *vmap_obj, const vmap_cmp_func cmp_func_ptr)
 {
     vmap_obj->head     = NULL;
     vmap_obj->tail     = NULL;
