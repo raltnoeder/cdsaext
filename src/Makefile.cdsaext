@@ -1,8 +1,8 @@
-CC=gcc
+CC=cc
 CFLAGS=-std=c99 -Wall -Werror --pedantic-errors -O2 -I .
 
-all: qtree.o vmap.o bsearch.o
+all: qtree.o vmap.o bsearch.o c_integerparse.o
 
 clean:
-	rm -f qtree.o vmap.o bsearch.o
+	rm -f qtree.o vmap.o bsearch.o c_integerparse.o
 
