@@ -1,10 +1,10 @@
 /**
  * Binary search in a sorted array
  *
- * @version 2016-03-13_001
+ * @version 2018-05-16_001
  * @author  Robert Altnoeder (r.altnoeder@gmx.net)
  *
- * Copyright (C) 2012 - 2016 Robert ALTNOEDER
+ * Copyright (C) 2012 - 2018 Robert ALTNOEDER
  *
  * Redistribution and use in source and binary forms,
  * with or without modification, are permitted provided that
@@ -35,10 +35,10 @@ const size_t BSEARCH_NPOS = ((size_t) ~0);
 
 
 size_t gbsearch(
-    void              *array[],
-    size_t            array_length,
-    void              *value,
-    gbsearch_cmp_func compare_func
+    const void *const *const    array,
+    const size_t                array_length,
+    const void *const           value,
+    const gbsearch_cmp_func     compare_func
 )
 {
     size_t result      = BSEARCH_NPOS;
@@ -48,8 +48,8 @@ size_t gbsearch(
     size_t width = array_length;
     while (width > 0)
     {
-        size_t mid_index = start_index + (width / 2);
-        int direction = compare_func(array[mid_index], value);
+        const size_t mid_index = start_index + (width / 2);
+        const int direction = compare_func(array[mid_index], value);
         if (direction < 0)
         {
             start_index = mid_index + 1;
@@ -72,9 +72,9 @@ size_t gbsearch(
 
 
 size_t bsearch_uint64(
-    uint64_t array[],
-    size_t   array_length,
-    uint64_t value
+    const uint64_t *const   array,
+    const size_t            array_length,
+    const uint64_t          value
 )
 {
     size_t result      = BSEARCH_NPOS;
@@ -84,7 +84,7 @@ size_t bsearch_uint64(
     size_t width = array_length;
     while (width > 0)
     {
-        size_t mid_index = start_index + (width / 2);
+        const size_t mid_index = start_index + (width / 2);
         if (array[mid_index] < value)
         {
             start_index = mid_index + 1;

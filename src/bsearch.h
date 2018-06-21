@@ -7,19 +7,19 @@
 
 extern const size_t BSEARCH_NPOS;
 
-typedef int (*gbsearch_cmp_func)(void *value_a, void *value_b);
+typedef int (*gbsearch_cmp_func)(const void *value_a, const void *value_b);
 
 size_t gbsearch(
-    void              *array[],
+    const void *const array[],
     size_t            array_length,
-    void              *value,
+    const void        *value,
     gbsearch_cmp_func compare_func
 );
 
 size_t bsearch_uint64(
-    uint64_t array[],
-    size_t   array_length,
-    uint64_t value
+    const uint64_t  array[],
+    size_t          array_length,
+    uint64_t        value
 );
 
 #endif	/* BSEARCH_H */
