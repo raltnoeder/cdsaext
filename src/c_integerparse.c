@@ -126,8 +126,6 @@ static int64_t c_parse_signed_int64_numeric_impl(
 {
     int64_t result = 0;
     bool error_flag = false;
-    const int64_t min_negative_base = min_value / base;
-    const int64_t max_positive_base = max_value / base;
 
     if (data_length >= 1)
     {
@@ -142,6 +140,7 @@ static int64_t c_parse_signed_int64_numeric_impl(
         size_t index = numbers_offset;
         if (positive_signed)
         {
+            const int64_t max_positive_base = max_value / base;
             while (index < data_length && result <= max_positive_base)
             {
                 result *= base;
@@ -162,6 +161,7 @@ static int64_t c_parse_signed_int64_numeric_impl(
         }
         else
         {
+            const int64_t min_negative_base = min_value / base;
             while (index < data_length && result >= min_negative_base)
             {
                 result *= base;
@@ -210,8 +210,6 @@ static signed long long c_parse_signed_long_long_numeric_impl(
 {
     signed long long result = 0;
     bool error_flag = false;
-    const signed long long min_negative_base = min_value / base;
-    const signed long long max_positive_base = max_value / base;
 
     if (data_length >= 1)
     {
@@ -226,6 +224,7 @@ static signed long long c_parse_signed_long_long_numeric_impl(
         size_t index = numbers_offset;
         if (positive_signed)
         {
+            const signed long long max_positive_base = max_value / base;
             while (index < data_length && result <= max_positive_base)
             {
                 result *= base;
@@ -246,6 +245,7 @@ static signed long long c_parse_signed_long_long_numeric_impl(
         }
         else
         {
+            const signed long long min_negative_base = min_value / base;
             while (index < data_length && result >= min_negative_base)
             {
                 result *= base;
